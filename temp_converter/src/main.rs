@@ -12,17 +12,10 @@ fn main() {
             .expect("Failed to read line");
 
         let choice: u32 = match choice.trim().parse() {
-            Ok(num) => {
-                if num < 1 || num > 2 {
-                    println!("Incorrect choice try again !");
-                    continue
-                } else {
-                    num
-                }
-            }
-            Err(_) => {
-                println!("Incorrect choice try again !");
-                continue
+            Ok(num @ 1..=2) => num,
+            _ => {
+                eprintln!("Incorrect choice try again !");
+                continue;
             }
         };
 
@@ -39,7 +32,7 @@ fn main() {
             Ok(num) => num,
 
             Err(_) => {
-                println!("Wrong temperature input, try again !");
+                eprintln!("Wrong temperature input, try again !");
                 continue;
             }
         };
@@ -47,10 +40,10 @@ fn main() {
         if choice == 1 {
             let result: f32 = (input - 32.0) * 5.0 / 9.0;
             println!("{}F is {}°C !", input, result);
-            break;
         } else {
             println!("{}°C is {}F !", input, ((input * 9.0 / 5.0) + 32.0));
-            break;
         }
+
+        break;
     }
 }
