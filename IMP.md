@@ -173,8 +173,8 @@ fn main() {
 ```
 
 * Associated functions, inside impl blocks we can have methods which receive self as the first arg, also we can have a
-  associated function, which are like normal fucntion (they don't receive self), often these are used as contructors.
-  To calll an associated function we use, struct::func().
+  associated function, which are like normal fucntion (they don't receive self), often these are used as contructors, which give a instance of that struct.
+  To call an associated function we use, struct::func().
 
   Associated functions let you namespace functionality that is particular to your struct without having an instance available.
 
@@ -298,3 +298,200 @@ Eg:
 ```
 
 Thus, When enum values have data inside them, you can use match or if let to extract and use those values, depending on how many cases you need to handle.
+
+
+----------------------------------------------------------- PACKAGES, CRATES & MODULES -----------------------------------------------------------
+
+
+* A package is one or more crates that provide a set of functionality. A package contains a Cargo.toml file that describes how to build those   crates.
+
+* There can be 2 types of crates, library crates and binary crates. You can have max one library crate but any number of binary crates in a package
+
+A binary crate is an executable project that has a main() method. A library crate is a group of components that can be reused in other projects. 
+Unlike a binary crate, a library crate does not have an entry point (main() method).
+
+* By deafult when we create a new package using `cargo new package-name`, Cargo follows a convention that src/main.rs is the crate root of a binary crate with the same name as the package. 
+
+* Likewise, Cargo knows that if the package directory contains src/lib.rs, the package contains a library crate with the same name as the package, and src/lib.rs is its crate root.
+
+* We can create a new library named restaurant by running cargo new --lib restaurant, this will create a new library which has its own `src/lib.rs`
+Now we might have a folder structure like:
+
+├───resturant
+│   └───src
+|       |__ lib.rs
+├───src
+|   |__ main.rs
+|
+|__ Cargo.toml
+
+* Modules let us organize code within a crate into groups for readability and easy reuse.
+
+We define a module by starting with the mod, modules can contain other modules or functions, structs, enums, constants, traits, etc.
+
+Eg:
+
+```
+mod front_of_house {
+    mod hosting {
+        fn add_to_waitlist() {}
+    }
+    mod serving {
+        fn take_order() {}
+        fn serve_order() {}
+    }
+}
+
+```
+
+*  src/main.rs and src/lib.rs are called crate roots. The reason for their name is that the contents of either of these two files form a module named crate at the root of the crate’s module structure, known as the module tree. The entire module tree is rooted under the implicit module named crate
+
+crate
+ └── front_of_house
+     ├── hosting
+     │   ├── add_to_waitlist
+     └── serving
+         ├── take_order
+         ├── serve_order
+
+
+* By default the code we write is implicitley inside the crate root module, everthing defined inside a module is private by default unless explicitly made public
+using the `pub` keyword. Modules can be accessed via a abosulte (starting from the crate root module) or relative path.
+
+You can access a module if its public or if its a sibling of the current module.
+
+```
+// `front_of_house` is not public
+mod front_of_house {
+    pub mod hosting {
+        pub fn add_to_waitlist() {}
+    }
+}
+
+pub fn eat_at_restaurant() {
+    // Absolute path
+    crate::front_of_house::hosting::add_to_waitlist();
+
+    // Relative path
+    // The front_of_house module isn’t public, but because the eat_at_restaurant function is defined in the same module(the implicit crate module) as front_of_house 
+    // (that is, eat_at_restaurant and front_of_house are siblings), we can refer to front_of_house from eat_at_restaurant.
+    front_of_house::hosting::add_to_waitlist();
+}
+```
+
+* We can construct relative paths that begin in the parent module by using super at the start of the path.
+
+```
+fn serve_order() {}
+
+mod back_of_house {
+    fn fix_incorrect_order() {
+        cook_order();
+        super::serve_order(); // This is same as `crate::serve_order()` since the parent module of `back_of_house` is the implicit `crate` root module
+    }
+
+    fn cook_order() {}
+}
+```
+
+* a struct inside a module is by default private and can be made public using the `pub` keyword.
+
+HOWEVER, even if the struct is made public the properties of the struct remain private and have to be explicitly made public.
+
+```
+mod back_of_house {
+
+    pub struct Breakfast {
+        pub toast: String,      // This property is public
+        seasonal_fruit: String, // This property is private
+    }
+
+    impl Breakfast {
+        pub fn summer(toast: &str) -> Breakfast { // A public associated function which acts like a constructor to make "Breakfast" instances.
+            Breakfast {
+                toast: String::from(toast),
+                seasonal_fruit: String::from("peaches"),
+            }
+        }
+    }
+}
+
+let mut meal = back_of_house::Breakfast::summer("Rye");
+
+meal.toast = String::from("Wheat");                 // OK !
+
+meal.seasonal_fruit = String::from("blueberries"); // ERROR ! cannot access private field `seasonal_fruit` of the `Breakfast` struct
+
+```
+
+* Unlike structs where we need to mae the invidual properties of the struct public for enums 
+ if we declare and enum as public it means all of its variants are then public.
+
+ ```
+ mod back_of_house {
+    pub enum Appetizer {
+        Soup,  // Here we don't need to explicitly declare `Soup` and `Salad` as public. 
+        Salad, // Since `Appetizer` is public we can directly use `back_of_house::Appetizer::Soup`
+    }
+}
+```
+
+
+* The `use` keyword is used to bring some other PUBLIC code into current scope, it can be thoughh of as an alias
+and helps us to avoid writing completed path names again and again.
+
+To import items relative to the current and parent modules, use the `self::` and `super::` prefixes, respectively.
+
+The rules of visibility also applies qually when brining items into scope via "use"
+
+```
+
+/*
+use crate::front_of_house::hosting;
+use self::front_of_house::hosting;  // From the current module bring "front_of_house::hosting" into scope
+use std::collections::HashMap;
+
+
+use std::fmt::Result;
+use std::io::Result as IoResult; // import as to avoid name collisions
+
+/*
+Re-exporting Names with "pub use"
+
+When we bring a name into scope with the use keyword, the name available in the new scope is private. 
+To enable the code that calls our code to refer to that name as if it had been defined in that code’s scope, we can combine pub and use. 
+*/
+
+pub use crate::front_of_house::hosting;
+
+
+use std::{cmp::Ordering, io}; // // Bring multiple items from same std module
+
+/*
+Intead of this....
+
+use std::io;
+use std::io::Write;
+
+We can write...
+
+*/
+use std::io::{self, Write};
+
+
+// To bring all public items defined in a path into scope, we can specify that path followed by *
+use std::collections::*;
+
+```
+
+
+* Keeping modules in separarte files...
+
+Using a semicolon after `mod filename;` rather than using a block tells Rust to load the contents of the 
+file.
+
+Eg: 
+
+To include the code from hello.rs in your main.rs, use mod hello;. It gets expanded to the code that is in hello.rs.
+
+use is just for alias, while mod pulls in the file. You would use use, for example, to be able to call the print_hello function without having to prefix with the namespace
