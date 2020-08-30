@@ -27,7 +27,7 @@ defmodule Rustyelixir.MixProject do
 
   defp rustler_crates do
     [
-      io: [
+      rusty: [
         path: "native/rustyelixir",
         mode: rustc_mode(Mix.env())
       ]
