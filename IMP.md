@@ -495,3 +495,89 @@ Eg:
 To include the code from hello.rs in your main.rs, use mod hello;. It gets expanded to the code that is in hello.rs.
 
 use is just for alias, while mod pulls in the file. You would use use, for example, to be able to call the print_hello function without having to prefix with the namespace
+
+
+----------------------------------------------------------- VECTORS, STRINGS and HASHMAPS -----------------------------------------------------------
+
+* A vector stores homogenous values contigously in memeory, its stored in the heap so elements can be added or removed from it at runtime.
+Vectors can only store values of the same type.
+
+```
+let v: Vec<i32> = Vec::new(); // creating a vector using Vec::new() requires a type annotaion
+
+let v = vec![1, 2, 3]; // Here we don't need type annotation when using the vec! macro
+
+let v = vec![]; // however this won't work, type annotations needed for `std::vec::Vec<T>`
+
+------------------------------------------------------
+// To add elements to a vector it must be mutable...
+let mut v = Vec::new();
+v.push(5);
+v.push(6);
+v.pop();
+
+------------------------------------------------------
+// Reading from a Vector, there are 2 ways...
+
+let v = vec![1, 2, 3, 4, 5];
+
+let third: &i32 = &v[2]; // Get the 3rd element, this works but the code will crash if we try to access a invalid or out of bound index
+
+// using the get method we obtain a Option<T> so even if the index is invalid it returns None and therefore this is safe
+match v.get(2) {
+    Some(third) => println!("The third element is {}", third),
+    None => println!("There is no third element."),
+}
+------------------------------------------------------
+
+/* 
+You can't have a mutable reference to a vector item while inserting/deleting from the vector
+adding a new element onto the end of the vector might require allocating new memory and copying the old elements to the new space, 
+if there isn’t enough room to put all the elements next to each other where the vector currently is. 
+In that case, the reference to the first element would be pointing to deallocated memory. 
+The borrowing rules prevent programs from ending up in that situation.
+*/
+
+let mut v = vec![1, 2, 3, 4, 5];
+
+let first = &v[0]; // immutable borrow occurs here
+
+v.push(6); // the push() needs a mutable borrow here, ERROR ! can't have both immutable and mutable borrow at same scope.
+
+------------------------------------------------------
+
+// Iterating on a vector
+
+let v = vec![100, 32, 57];
+for i in &v {
+    println!("{}", i);
+}
+
+// Iterate over mutable references to each element in a mutable vector in order to make changes to all the elements.
+let mut v = vec![100, 32, 57];
+for i in &mut v {
+    *i += 50;      // To change the value that the mutable reference refers to, we 
+                   // have to use the dereference operator (*) to get to the value in i before we can use the += operator. 
+}
+
+// Update a value at index
+
+let mut v = vec![1, 2, 3, 4, 5, 6];
+let got = std::mem::replace(&mut v[3], 42); // [1, 2, 3, 42, 5, 6]
+
+------------------------------------------------------
+// You can store different type of values ina vector using a Enum
+
+enum SpreadsheetCell {
+        Int(i32),
+        Float(f64),
+        Text(String),
+    }
+
+let row = vec![
+    SpreadsheetCell::Int(3),
+    SpreadsheetCell::Text(String::from("blue")),
+    SpreadsheetCell::Float(10.12),
+];
+
+```
