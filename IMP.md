@@ -581,3 +581,112 @@ let row = vec![
 ];
 
 ```
+
+* Strings in rust are not so simple !
+
+
+In rust Strings are UTF-8 encoded text. So this works: `String::from("नमस्ते");`
+They are actaully a wrapper over a Vec<u8>.
+
+Many of the same operations available with Vec<T> are available with String as well, like the new function to create a string.
+
+```
+
+// Creating a new string
+let mut s = String::new();
+
+// Get a string from a string literal(&str) or some preexisting data
+// to_string() works on anything that implements the Display trait.
+let s = "initial contents".to_string();
+
+// Also, we can do... 
+let s = String::from("initial contents"); // this has exactly same outcome as "initial contents".to_string()
+
+-------------------------------------
+// Appending
+
+let mut s1 = String::from("foo");
+let s2 = "bar";
+s1.push_str(s2);
+println!("s2 is {}", s2);
+
+// Here the push-str method takes a slice(&str) so the ownership os s2 is not lost
+
+// To push a single characterr we can use...
+let mut s = String::from("lo");
+s.push('l');
+--------------------------------------
+
+// Concating using `+` operator
+
+let s1 = String::from("Hello, ");
+let s2 = String::from("world!");
+let s3 = s1 + &s2;
+
+/* 
+
+The `+` operator uses the `fn add(self, s: &str) -> String` method.
+add() takes ownership of the first string, so in the example ownsership of `s1` is lost after `s1 + &s2`. But ownership for s2 is not lost since its borrowed.
+Also, the 2nd parameter to add() is a slice(&str) but in the example we passed a reference to a string (&String).
+Here rust uses automatic `deref coercoin` which turns &s2 into &s2[..] thus giving us a slice
+
+*/
+------------------------------
+
+// Using format! macro, we get a string without losing ownership of any of the parameters
+
+let s1 = String::from("tic");
+let s2 = String::from("tac");
+let s3 = String::from("toe");
+
+let s = format!("{}-{}-{}", s1, s2, s3);
+```
+
+* Indexing into string
+
+In rust a string is a series of bytes. A ut8 chracter may take 1 byte, 2byte...
+
+So index a string directly is not possible, although index via range is possible but if we end up at a invalid char boundary our code will panicand crash...
+`thread 'main' panicked at 'byte index 1 is not a char boundary;`
+
+If we do `len` on string it gives us a the number of bytes,so...
+
+String::from("Hola"); // Length is 4 since each letter is one byte
+
+String::from("Здравствуйте"); // Length is 24 although there are 12 chracters since each character here is 2 bytes
+
+There are 3 ways to read a string, for a hindi string “नमस्ते” ...
+
+- Reading each byte. (vector of u8) Eg: [224, 164, 168, ... 135] (18 bytes)
+
+- Reading as unicode scalar values or as rusts `char` type.
+  Eg: ['न', 'म', 'स', '्', 'त', 'े']
+
+- Reading a grapheme clusters, Eg: ["न", "म", "स्", "ते"]
+
+Also, index into string directly is again not possible since indexing should be a O(1) operation but for stings Rust would have to walk through the contents from the beginning to the index to determine how many valid characters there were.
+
+
+```
+let s1 = String::from("hello");
+let h = s1[0]; // ERROR ! `std::ops::Index<{integer}>` is not implemented for `std::string::String`
+
+
+let hello = "Здравствуйте";
+&hello[0..2]; // Reading first 2 bytes gives `З`
+&hello[2..4]; // Reading 2nd 2 bytes gives `д`
+&hello[4..5]; // thread 'main' panicked at 'byte index 5 is not a char boundary;
+    
+
+// Iterating on string...
+
+for b in "नमस्ते".bytes() {
+    println!("{}", b);  // [224, 164, 168, ... 135]
+}
+
+for c in "नमस्ते".chars() {
+    println!("{}", c);   // ['न', 'म', 'स', '्', 'त', 'े']
+}
+```
+Getting grapheme clusters from strings is complex, so this functionality is not provided by the standard library. 
+Use this, to get this functionality: https://crates.io/crates/unicode-segmentation
