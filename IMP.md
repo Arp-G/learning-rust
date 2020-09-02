@@ -446,7 +446,6 @@ The rules of visibility also applies qually when brining items into scope via "u
 
 ```
 
-/*
 use crate::front_of_house::hosting;
 use self::front_of_house::hosting;  // From the current module bring "front_of_house::hosting" into scope
 use std::collections::HashMap;
@@ -690,3 +689,97 @@ for c in "नमस्ते".chars() {
 ```
 Getting grapheme clusters from strings is complex, so this functionality is not provided by the standard library. 
 Use this, to get this functionality: https://crates.io/crates/unicode-segmentation
+
+
+* HashMap<K, V>
+
+A hash map stores key value pairs, where both thew keys and values must be of homogenous types(all of the keys must have the same type, and all of the values must have the same type).
+
+Just like vectors, hash maps store their data on the heap.
+
+By default, a hashmap uses a “cryptographically strong” hash function, which provides security but might be slow for some applications, you can provide your own hash function(A hasher is a type that implements the BuildHasher trait.), many implementations are available on crates.io
+
+Unlike strings and vectors a Hash map not automatically available in scope we need to import it like `use std::collections::HashMap`
+
+```
+use std::collections::HashMap;
+
+let mut scores = HashMap::new(); // There is no built-in macro, like for vectors `vec![1, 2, 3]`
+
+// Here the type (keys of type String and values of type i32) is automatically understood by rust as we insert values
+
+scores.insert(String::from("Blue"), 10); // Adding keys and values
+scores.insert(String::from("Yellow"), 50);
+
+
+
+// Create a hash map using iterators and the collect method on a vector of tuples
+
+
+let teams = vec![String::from("Blue"), String::from("Yellow")];
+let initial_scores = vec![10, 50];
+
+// Here zip method to create a vector of tuples
+let mut scores: HashMap<_, _> =
+    teams.into_iter().zip(initial_scores.into_iter()).collect();
+```
+
+Ownership:
+
+For datat types which implement the Copy trait like i32, values are copied into the hash map when inserting.
+
+*IMPORTANT:* 
+For owned values like String, the values will be moved and the hash map will be the owner of those values
+
+If we insert references to values into the hash map, the values won’t be moved into the hash map, however the values that the references point to must be valid for at least as long as the hash map is valid.
+
+Accessing values:
+
+We use the get() method that gives us a `Option<&V>` that is a Option enum
+which wraps up a reference to the value, if the key does not exists it gives us `None`.
+
+```
+let mut scores = HashMap::new();
+
+scores.insert(String::from("Blue"), 10);
+let team_name = String::from("Blue");
+let score = scores.get(&team_name);  // Gives a Some(&10)
+
+
+// Iterating over key value paires in a hash using for loop
+
+for (key, value) in &scores {
+    println!("{}: {}", key, value);
+}
+```
+
+Updating Values:
+
+By default inserting a value for a key that already exists will overwrtie its value.
+
+ENTRY:
+
+Hash maps have a special API for this called entry that takes the key you want to check as a parameter. The return value of the entry method is an enum called Entry that represents a value that might or might not exist. 
+
+Example...
+
+```
+scores.entry(String::from("Yellow")).or_insert(50); 
+```
+
+`scores.entry` gives us a `Entry`, the `or_insert` method on Entry gives us a mutable reference for the corresponding value if the key exists or if there is no value then it inserts a value and then returns a mutable reference to it.
+
+Since or_insert gives us a mutable reference we can use it to update the value inside the hash, this is usefull if we want to updating a Value Based on the Old Value...
+
+```
+// Count occurance of each word in a sentence
+
+let text = "hello world wonderful world";
+
+let mut map = HashMap::new();
+
+for word in text.split_whitespace() {
+    let count = map.entry(word).or_insert(0);
+    *count += 1; // in order to assign to that value, we must first dereference count using the asterisk (*)
+}
+```
