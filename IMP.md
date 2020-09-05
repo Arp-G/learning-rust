@@ -783,3 +783,164 @@ for word in text.split_whitespace() {
     *count += 1; // in order to assign to that value, we must first dereference count using the asterisk (*)
 }
 ```
+
+----------------------------------------------------------- ERROR HANDLING -----------------------------------------------------------
+
+* The panic! macro makes our code pani, cWhen the panic! macro executes, your program will print a failure message, unwind and clean up the stack, and then quit.
+
+  By default on panic our code will unwind which means Rust walks back up the stack and cleans up the data from each function it encounters, but this might be slow,
+  alternative is to immediately abort, which ends the program without cleaning up. 
+  Memory that the program was using will then need to be cleaned up by the operating system.
+
+  You can change the behaviour on panic, like in order to `abort` instead of unwinding in release mode, add a profile for release mode in 'Cargo.toml' file like..
+  (aborting instead of unwinding can make our release binary smaller)
+
+  ```
+  [profile.release]
+  panic = 'abort'
+  ```
+
+We can call panic like...
+
+```
+fn main() {
+    panic!("crash and burn"); // thread 'main' panicked at 'crash and burn', src/main.rs:2:5
+}
+```
+
+When we try to do something illegal, like access a array index not available a rust core library method might call the panic! macro for us...
+'thread 'main' panicked at 'index out of bounds: the len is 3 but the index is 99', /rustc/5e1a799842ba6ed4a57e91f7ab9435947482f7d8/src/libcore/slice/mod.rs:2806:10'
+
+We can see a complete backtrace when our code panics by running it like 'RUST_BACKTRACE=1 cargo run'
+
+* Recovering from erros with Result<T, E>
+
+The Result enum has two values, Ok(T) or Err(E) here T represents the type of the value that will be returned in a success case within the Ok variant, 
+and E represents the type of the error that will be returned in a failure case within the Err variant. Just like the Options enum the Result enum
+and its variants are automatically brought into scope and we can use them directly.
+
+Examples...
+
+```
+
+// Using match
+
+use std::fs::File;
+
+fn main() {
+    let f = File::open("hello.txt");
+
+    let f = match f {
+        Ok(file) => file,
+        Err(error) => panic!("Problem opening the file: {:?}", error),
+    };
+}
+
+
+-------------------------------------
+
+// Create a File if it does not exists
+
+// io::Error struct provided by the standard library, has a kind() method that returns an io::ErrorKind value. 
+// The enum io::ErrorKind has variants representing the different kinds of errors that might result from an io operation. 
+// The variant we want to use is ErrorKind::NotFound here...
+
+use std::fs::File;
+use std::io::ErrorKind;
+
+fn main() {
+    let f = File::open("hello.txt");
+
+    let f = match f {
+        Ok(file) => file,
+        Err(error) => match error.kind() {
+            ErrorKind::NotFound => match File::create("hello.txt") {
+                Ok(fc) => fc,
+                Err(e) => panic!("Problem creating the file: {:?}", e),
+            },
+            other_error => {
+                panic!("Problem opening the file: {:?}", other_error)
+            }
+        },
+    };
+}
+
+
+---------------------------------------
+// Shortcuts...
+
+use std::fs::File;
+
+fn main() {
+
+    // Unwraps and returns T from Result::Ok<T> that is the file handle in this case otherwise in case of Err it calls panic! macro
+    let f = File::open("hello.txt").unwrap(); 
+
+    // OR
+
+    // Same as above but allows us to preovide a custom message incase of panic
+    let f = File::open("hello.txt").expect("Failed to open hello.txt");
+}
+```
+
+Propagating erros and `?` operator shortcut...
+----------------------------------------------
+
+Instead of calling panic! or handling the Result::Err we can return it to the caller in that case our fucntion must return a type like
+`Result<String, io::Error>` and we can have `Err(e) => return Err(e)` in case of error.
+
+
+
+If the `?` operator is placed after a Result, and the value of the Result is an Ok, the value inside the Ok will get returned from this expression,
+and the program will continue. 
+Otherwise the Err will be returned from the whole function as if we had used the return keyword so the error value gets propagated to the calling code.
+
+Example...
+
+```
+use std::fs::File;
+use std::io;
+use std::io::Read;
+
+fn read_username_from_file() -> Result<String, io::Error> {
+    let mut s = String::new();
+
+    File::open("hello.txt")?.read_to_string(&mut s)?;
+
+    Ok(s)
+}
+
+```
+
+Here if `File::open("hello.txt")` is success `?` returns the file handle T inside Result::Ok<T> over which we call `read_to_string` which loads up the content
+of the file in the mutable string `s`. If at any point we recieve Result::Err<E> the `?` operator will resturn from the fucntion with Result::Err<E>.
+
+This is common so there is shotcut method like `fs::read_to_string("hello.txt")` which does the same thing as above.
+
+--------------------------------------------------------------
+DIFFERENSE BETWEEN `return Err<E>` and using `?` operator...
+--------------------------------------------------------------
+
+Instead of directly returning a `Result::Err<E>` the `?` operator calls the `from()` function of the `From` trait in the standard library.
+from() converts the error type received into the error type defined in the return type of the current function.
+
+his is useful when a function returns one error type to represent all the ways a function might fail.
+As long as each error type implements the from function to define how to convert itself to the returned error type, 
+the ? operator takes care of the conversion automatically.
+
+Finally the `?` operator can only be used in a function that returns Result or Option or another type that implements std::ops::Try.
+
+The main() function either returns `()`, and conveniently, another valid return type is Result<T, E>. So we can do...
+
+```
+use std::error::Error;
+use std::fs::File;
+
+fn main() -> Result<(), Box<dyn Error>> { // Box<dyn Error> type is called a trait object, it means “any kind of error.”
+    let f = File::open("hello.txt")?;
+
+    Ok(())
+}
+```
+
+So, Using `?` in a main function is allowed only if the return type is `Result`.
