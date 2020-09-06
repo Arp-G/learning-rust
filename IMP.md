@@ -1086,3 +1086,208 @@ fn main() {
     let float = Option_f64::Some(5.0);
 }
 ```
+
+
+====== TRAITS ======
+
+Traits are similar to a feature often called interfaces in other languages, where you define a method and overrride it by implementing the interface.
+
+Definign a trait:
+
+```
+pub trait Summary {
+    fn summarize(&self) -> String;
+}
+```
+
+Implementing a trait, syntax like: 'impl TRAIT for TYPE'
+
+```
+// Implementing the Summary trait for the NewsArticle struct
+impl Summary for NewsArticle {
+    fn summarize(&self) -> String {
+        format!("{}, by {} ({})", self.headline, self.author, self.location)
+    }
+}
+
+// Now we can all summarize on an instance of NewsArticle like..
+article.summarize()
+
+```
+
+ == Restriction when implementing traits ==
+
+For implementing the trait on a type, either the type or the trait must be local to our crate. For example, we can implement the Display trait(external trait must be public) which is an external trait on our local type like 'NewsArticle'.
+
+Similary we can implement our local trait like 'Summary' on an external type like String.
+
+** However, WE CANNOT IMPLEMENT EXTRNAL TRAITS ON EXTERNAL TYPES.
+Eg: We can't implement the external DIsplay trait on the external Vec<T> type.
+
+Reason:
+
+This restriction is part of a property of programs called coherence, and more specifically the orphan rule, 
+so named because the parent type is not present. This rule ensures that other people’s code can’t break your code and vice versa. 
+Without the rule, two crates could implement the same trait for the same type, and Rust wouldn’t know which implementation to use.
+
+
+* We can have a default implementations for a trait, if a type implementing the trait does not specify its own implementation the default is used.
+
+Eg:
+
+```
+pub trait Summary {
+    fn summarize_author(&self) -> String;
+
+    // Default implementation of summarize
+    fn summarize(&self) -> String {
+        format!("(Read more from {}...)", self.summarize_author())
+    }
+}
+
+```
+
+In the above example if a type only defines 'summarize_author' when implementing the 'Summary' trait then its also gets the 'summarize'
+method without having to implement it since there is a default implementation.
+
+
+* Traits as parameters
+
+When using generics in function signature we can use traits like..
+
+```
+pub fn notify<T: Summary>(item: &T) {
+    println!("Breaking news! {}", item.summarize());
+}
+```
+
+'<T: Summary>' says thtat the function receives a generic type T that must implement the Summary trait.
+
+An equivalent, shortcut to the above code is..
+
+```
+pub fn notify(item: &impl Summary) {
+    println!("Breaking news! {}", item.summarize());
+}
+```
+
+Sometimes the above shotcut cannot be used to express our intentions like...
+
+```
+pub fn notify<T: Summary>(item1: &T, item2: &T) { ... }
+
+// is not the same as...
+
+pub fn notify(item1: &impl Summary, item2: &impl Summary) {... }
+
+// since it inforces that both item1, item2 must be of same generic type T
+```
+
+
+* Specifying Multiple Trait Bounds with the + Syntax
+
+```
+// Here, 'item' must implement both Display and Summary traits
+
+pub fn notify<T: Summary + Display>(item: &T) { ... }
+
+// or shotcut
+
+pub fn notify(item: &(impl Summary + Display)) { ... }
+```
+
+Having multiple items having different traits might be confussing a cleaner synax is using the 'where' clause like...
+
+
+```
+fn some_function<T: Display + Clone, U: Clone + Debug>(t: &T, u: &U) -> i32 {...}
+
+// The above can be written like...
+
+fn some_function<T, U>(t: &T, u: &U) -> i32
+    where T: Display + Clone,
+          U: Clone + Debug
+{ ... }
+```
+
+* Returning Types that Implement Traits
+
+We can also use the impl Trait syntax in the return position to return a value of some type that implements a trait
+
+```
+fn returns_summarizable() -> impl Summary { ... }
+```
+
+WARNING: When specifying the return type of a function implements a specific trait 
+it DOES NOT mean you can conditionally return DIFFERENT TYPEs at just beacuse those 
+types implement the trait. 
+
+Your function can only return a specific type but specifying the return type as a 
+trait only means that the retuned type must implement the trait.
+
+So, this is INVALD ! Gives error like: '`if` and `else` have incompatible types'
+
+```
+fn returns_summarizable(switch: bool) -> impl Summary {
+    if switch {
+        NewsArticle {...}
+    } else {
+        Tweet { ... }
+    }
+}
+```
+The above code wont compile, since it conditionally returns either a 'NewsArticle' or a 'Tweet' 
+although both of them implement the 'SUmmary' trait.
+While you can accept different types T you can only return a perticular type at all circumstances from the function.
+
+
+* Conditionally implementing methods
+
+By using a trait bound with an impl block that uses generic type parameters, we can implement methods conditionally for types that implement the specified traits.
+
+Eg:
+
+Here, we implement the 'cmp_display' method for only those types T of Pair<T> that implement both traits 'Display' and 'PartialOrd'
+
+(This similar to how we implement a method for only a perticular type like Pair<f32>.)
+
+```
+...
+
+impl<T: Display + PartialOrd> Pair<T> {
+    fn cmp_display(&self) {
+        if self.x >= self.y {
+            println!("The largest member is x = {}", self.x);
+        } else {
+            println!("The largest member is y = {}", self.y);
+        }
+    }
+}
+
+```
+
+Also, we can conditionally implement a trait for any type that implements another trait, this is called 'blanket'.
+
+For example, the standard library implements the ToString trait on any type that implements the Display trait. 
+The impl block in the standard library looks similar to this code:
+
+```
+impl<T: Display> ToString for T { // Implement the 'ToString' function for any Type T that implements the 'Display' trait
+    // --snip--
+}
+```
+
+Because the standard library has this blanket implementation, we can call the to_string method defined by the ToString trait on 
+any type that implements the Display trait. 
+
+For example, `let s = 3.to_string();`
+
+
+
+Advantage over other languages:
+-------------------------------
+In dynamically typed languages, we would get an error at runtime if we called a method on a type which didn’t define the method. 
+
+But Rust moves these errors to compile time so we’re forced to fix the problems before our code is even able to run. 
+Additionally, we don’t have to write code that checks for behavior at runtime because we’ve already checked at compile time. 
+Doing so improves performance without having to give up the flexibility of generics.
