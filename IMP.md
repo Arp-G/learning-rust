@@ -720,9 +720,16 @@ let teams = vec![String::from("Blue"), String::from("Yellow")];
 let initial_scores = vec![10, 50];
 
 // Here zip method to create a vector of tuples
+// Rust can infer the types that the hash map contains based on the types of the data in the vectors.
 let mut scores: HashMap<_, _> =
     teams.into_iter().zip(initial_scores.into_iter()).collect();
 ```
+
+== IMPORTANT ==
+HERE WE DID NOT HAVE TO SPECIFY THE TYPES <K,V> WHEN DEFINING THE HashMap LIKE
+HashMap::new() since we added vavlues ot it later `scores.insert(String::from("Blue"), 10);` , so the compiler infered types that the HashMap has keys of type String and values of type i32.
+
+----------
 
 Ownership:
 
@@ -944,3 +951,138 @@ fn main() -> Result<(), Box<dyn Error>> { // Box<dyn Error> type is called a tra
 ```
 
 So, Using `?` in a main function is allowed only if the return type is `Result`.
+
+
+----------------------------------------------------------- GENERICS -----------------------------------------------------------
+
+
+* We can use generics in function signatures, structs or enums.
+
+Exampls...
+
+```
+/*
+This function largest is generic over some type T. This function has one parameter named list, which is a slice of values of type T. The largest function will return a reference to a value of the same type T.
+*/
+
+fn largest<T>(list: &[T]) -> &T {
+    let mut largest = list[0];
+
+    for item in list {
+        if item > largest {
+            largest = item;
+        }
+    }
+
+    largest
+}
+
+---------------------
+// Generic struct
+
+struct Point<T, U> {
+    x: T,
+    y: U,
+}
+
+...
+let both_float = Point { x: 1.0, y: 4.0 };
+let integer_and_float = Point { x: 5, y: 4.0 };
+
+---------------------
+// Generic enums
+
+enum Option<T> {
+    Some(T),
+    None,
+}
+
+enum Result<T, E> {
+    Ok(T),
+    Err(E),
+}
+
+--------------------
+// Generics for 'impl'
+
+struct Point<T> {
+    x: T,
+    y: T,
+}
+
+impl<T> Point<T> {
+
+    // A simple getter
+    fn x(&self) -> &T {
+        &self.x
+    }
+}
+
+```
+
+It is possible to implment a method only for a specific generic type of the struct like, this method is only available for 'Point<f32>' structs 
+
+```
+impl Point<f32> {
+    fn distance_from_origin(&self) -> f32 {
+        (self.x.powi(2) + self.y.powi(2)).sqrt()
+    }
+}
+
+```
+
+Generics in impl and generics in method are different..
+
+Here a new method is defined for 'Point<T, U>' so we had to specify the generic parameters as 'impl<T, U>'.
+
+Next the method additionalty took a 'Point<V, W>' as a argument, which is of some other type <V,W> different from <T,U>
+so we had to define the method like 'mixup<V, W>'.
+
+```
+
+impl<T, U> Point<T, U> {
+    fn mixup<V, W>(self, other: Point<V, W>) -> Point<T, W> {
+        Point {
+            x: self.x,
+            y: other.y,
+        }
+    }
+}
+
+...
+let p1 = Point { x: 5, y: 10.4 };
+let p2 = Point { x: "Hello", y: 'c' };
+
+let p3 = p1.mixup(p2); // Point { x: 5, y: 'c' };
+```
+
+== PERFORMANCE OF GENERICS ==
+
+Rust uses a technique called 'Monomorphization' which replaces all generics with concrete types at compile time and therefore there is absolutely NO COST at runtime.
+
+Eg: 
+
+If we create 2 Option<T> types like 'Some(5);' and 'Some(5.0);'
+
+Rust will expands the generic definition of Option<T> into Option_i32 and Option_f64, thereby replacing the generic definition with the specific ones.
+
+
+```
+
+// Compile time Monomorphization, expanding generics:
+
+enum Option_i32 {
+    Some(i32),
+    None,
+}
+
+enum Option_f64 {
+    Some(f64),
+    None,
+}
+
+fn main() {
+    let integer = Option_i32::Some(5);
+    let float = Option_f64::Some(5.0);
+}
+```
