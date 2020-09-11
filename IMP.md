@@ -1454,3 +1454,174 @@ where
     }
 }
 ```
+
+----------------------------------------------------------- TESTING IN RUST -----------------------------------------------------------
+
+
+To change a function into a test function, add #[test] annotation on the line before fn so the test runner knows to treat this function as a test.
+
+We run tests using the cargo test command.
+
+* Rust builds a test runner binary that runs the functions annotated with the test attribute and reports on whether each test function passes or fails. *
+* Each test is run in a new thread, and when the main thread sees that a test thread has died, the test is marked as failed. *
+
+If you are not using a separate module for tests then you don't need to use `#[cfg(test)]`. 
+Functions marked with #[test] are already excluded from non-test builds. This can be verified very easily:
+
+```
+#[test]
+fn test() {}
+
+fn main() {
+    test(); // error[E0425]: cannot find function `test` in this scope
+}
+```
+
+
+
+A test fails when the test function panics, either when panic! is called explicitly by us or when its called by an assert macro.
+
+If the value is false, the assert! macro calls the panic! macro.
+
+We can use `assert!`, `assert_eq!` and `assert_ne!` in tests to write assertions.
+
+The tests module is a regular module that follows the usual visibility rules.
+Because the tests module is an inner module, we need to bring the code under test in the outer module into the scope of the inner module. 
+We use `use super::*;` inside the test module so anything we define in the outer module is available to this tests module.
+
+
+Example:
+
+```
+#[derive(Debug)]
+struct Rectangle {
+    width: u32,
+    height: u32,
+}
+
+impl Rectangle {
+    fn can_hold(&self, other: &Rectangle) -> bool {
+        self.width > other.width && self.height > other.height
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn larger_can_hold_smaller() {
+        // --snip--
+        let larger = Rectangle {
+            width: 8,
+            height: 7,
+        };
+        let smaller = Rectangle {
+            width: 5,
+            height: 1,
+        };
+
+        assert!(larger.can_hold(&smaller));
+    }
+
+    #[test]
+    fn smaller_cannot_hold_larger() {
+        let larger = Rectangle {
+            width: 8,
+            height: 7,
+        };
+        let smaller = Rectangle {
+            width: 5,
+            height: 1,
+        };
+
+        assert!(!smaller.can_hold(&larger));
+    }
+}
+
+fn main() {}
+```
+
+
+When the assertions fail, the `assert..` macros print their arguments using debug formatting,
+which means the values being compared must implement the `PartialEq` and `Debug` traits. 
+All the primitive types and most of the standard library types implement these traits. 
+For structs and enums that you define, you’ll need to implement `PartialEq` to assert that values of those types are equal or not equal. 
+ 
+You’ll need to implement Debug to print the values when the assertion fails. 
+
+Because both traits are derivable traits, this is usually as straightforward as adding the `#[derive(PartialEq, Debug)]` annotation to your struct or enum definition.
+
+
+* Adding custom faliure messages:
+
+Add a custom message to be printed with the failure message as optional arguments to the assert!, assert_eq!, and assert_ne! macros.
+This messages are passed to panic! when a test fails.
+
+This messages are passed along to the format! macro, so you can pass a format string that contains {} placeholders and values to go in those placeholders. 
+
+Example:
+
+```
+assert!(
+            result.contains("Carol"),
+            "Greeting did not contain name, value was `{}`",
+            result
+        );
+```
+
+If this assertion fails we get an error like `thread 'main' panicked at 'Greeting did not contain name, value was `Hello!`', src/lib.rs:12:9`
+
+
+You can mark that a test should panic by using the `should_panic` annotation along with the `test` annotation.
+
+Example:
+```
+#[test]
+#[should_panic]
+fn greater_than_100() {
+    Guess::new(200);
+}
+```
+
+A should_panic test would pass even if the test panics for a different reason from the one we were expecting to happen. To make should_panic tests more precise, we can add an optional expected parameter to the should_panic attribute
+
+The should_panic attribute’s expected parameter has to be a *substring* of the message that the function panics with.
+
+Example:
+```
+#[test]
+#[should_panic(expected = "Guess value must be less than or equal to 100")]
+fn greater_than_100() {
+    Guess::new(200);
+}
+```
+
+* Using Result<T, E> in Tests
+
+If a test function has a return type of Result<T, E> it means 
+we return `Ok` when the test passes and an `Err` when the test fails.
+
+This enables us to use the question mark operator, which can be a convenient way to write tests that should fail if any operation within them returns an Err variant.
+
+(If the `?` operator is placed after a Result, and the value of the Result is an Ok, the value inside the Ok will get returned from this expression,
+and the program will continue. Otherwise the Err will be returned from the whole function as if we had used the return keyword so the error value 
+gets propagated to the calling code.)
+
+We can’t use the `#[should_panic]` annotation on tests that use `Result<T, E>`, 
+instead we must return `Err` value directly when the test should fail.
+
+Example:
+```
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn it_works() -> Result<(), String> {
+        if 2 + 2 == 4 {
+            Ok(())
+        } else {
+            Err(String::from("two plus two does not equal four"))
+        }
+    }
+}
+```
