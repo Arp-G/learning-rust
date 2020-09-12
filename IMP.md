@@ -897,10 +897,10 @@ Instead of calling panic! or handling the Result::Err we can return it to the ca
 `Result<String, io::Error>` and we can have `Err(e) => return Err(e)` in case of error.
 
 
+* If the `?` operator is placed after a Result, and the value of the Result is an Ok, the value inside the Ok will get *returned from this expression*,and the program will continue. 
+Otherwise the Err will be *returned from the whole function* as if we had used the return keyword so the error value gets propagated to the calling code.
 
-If the `?` operator is placed after a Result, and the value of the Result is an Ok, the value inside the Ok will get returned from this expression,
-and the program will continue. 
-Otherwise the Err will be returned from the whole function as if we had used the return keyword so the error value gets propagated to the calling code.
+*For error case the ? operator returns the Result<E> from the function itself while for Result<v> it just returns V after evalutaing the expression it DOES NOT return from the function itself.* 
 
 Example...
 
