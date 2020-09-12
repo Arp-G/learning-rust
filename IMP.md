@@ -1457,6 +1457,7 @@ where
 
 ----------------------------------------------------------- TESTING IN RUST -----------------------------------------------------------
 
+Even though Rust’s type system and ownership rules help prevent some kinds of bugs, tests are still important to reduce logic bugs having to do with how your code is expected to behave.
 
 To change a function into a test function, add #[test] annotation on the line before fn so the test runner knows to treat this function as a test.
 
@@ -1625,3 +1626,152 @@ mod tests {
     }
 }
 ```
+
+* Controlling Test runs
+
+Just as cargo run compiles your code and then runs the resulting binary, cargo test compiles your code in test mode and runs the resulting test binary. 
+
+Some command line options go to cargo test, and some go to the resulting test binary.
+
+To separate these two types of arguments, you list the arguments that go to cargo test followed by the separator -- and then the ones that go to the test binary.
+(Running cargo test --help displays the options you can use with cargo test, and running cargo test -- --help displays the options you can use after the separator --)
+
+By default they run in parallel using threads, if they are iterdependent this might be a problem run them sequentially by using only one thread like..
+
+`cargo test -- --test-threads=1`
+
+If the test prints some value then only values printed by failed tests are shown by default, you can see all printed values if..
+`cargo test -- --show-output`
+
+Running a Subset of Tests by Name: `cargo test add` , this runs test function which have the substring 'add' in there name.
+
+Ignoring Some Tests: Add the `#[ignore]` attribute to exclude some tests like...
+
+```
+#[test]
+#[ignore]
+fn expensive_test() {
+    // code that takes an hour to run
+}
+```
+
+Run only the ignored tests: `cargo test -- --ignored`
+
+Run all tests in a specific file(tests/integration_test.rs): `cargo test --test integration_test`
+
+* Organizing tests
+
+= Unit tests =
+
+You’ll put unit tests in the src directory in each file with the code that they’re testing. 
+The convention is to create a module named tests in each file to contain the test functions and to annotate the module with cfg(test).
+
+What is [cfg(test)]?
+
+The #[cfg(test)] annotation on the tests module tells Rust to compile and run the test code only when you run cargo test, not when you run cargo build. 
+This saves compile time when you only want to build the library and saves space in the resulting compiled artifact because the tests are not included.
+
+By using the cfg attribute, Cargo compiles our test code only if we actively run the tests with cargo test.
+
+The attribute cfg stands for configuration and tells Rust that the following item should only be included given a certain configuration option.
+---
+
+Example of a unit test for src/lib.rs
+
+```
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn it_works() {
+        assert_eq!(2 + 2, 4);
+    }
+}
+
+fn main() {}
+```
+
+Testing private functions: 
+
+Because tests are just Rust code and the tests module is just another module, you can bring private functions into a test’s scope and call it. 
+
+Eg:
+
+```
+// Private function
+fn internal_adder(a: i32, b: i32) -> i32 { a + b }
+
+#[cfg(test)]
+mod tests {
+    use super::*; // brings the private functions into a test’s scope
+
+    #[test]
+    fn internal() {
+        assert_eq!(4, internal_adder(2, 2));
+    }
+}
+
+```
+
+== Integrastion tests ==
+
+We create a tests directory at the top level of our project directory, next to src. Cargo knows to look for integration test files in this directory.
+
+Example:
+
+In tests/integration_test.rs..
+
+```
+use adder;
+
+#[test]
+fn it_adds_two() {
+    assert_eq!(4, adder::add_two(2));
+}
+```
+
+*Each file in the tests directory is a separate crate*
+
+So we need to bring the code we want to test in the crate's scope by `use adder;` this was not required for unit tests.
+
+We don’t need to annotate any code in tests/integration_test.rs with #[cfg(test)]. 
+Cargo treats the tests directory specially and compiles files in this directory only when we run cargo test
+
+
+* Submodules with integration tests
+
+We might have some helper functions which many of our integration tests use, this helper function are not tests by themself but rust does not know that.
+
+To avoid having helper files appear in the test output, instead of creating tests/common.rs, we’ll create tests/common/mod.rs. 
+This is an alternate naming convention that Rust also understands. 
+
+Naming the file this way tells Rust NOT to treat the common module as an integration test file. 
+
+*Files in subdirectories of the tests directory don’t get compiled as separate crates or have sections in the test output.*
+
+Example:
+
+Here we use functionality from our helper tests/common/mod.rs in a integration test
+
+```
+use adder;
+
+mod common; // module declaration for using the helper functions
+
+#[test]
+fn it_adds_two() {
+    common::setup();                        // Calling the helper function 'setup' in the helper module 'common'
+    assert_eq!(4, adder::add_two(2));
+}
+```
+
+---
+
+* Integration tests are NOT available for binary crates
+
+Lastly, for binary crates that only contains a src/main.rs file and doesn’t have a src/lib.rs file. 
+In this case, we can’t create integration tests in the tests directory and bring functions defined in the src/main.rs 
+file into scope with a use statement beacuse 
+*only library crates expose functions that other crates can use; binary crates are meant to be run on their own.*
+
+To use integration tests for binary crates, We have to have a straightforward src/main.rs file that calls logic that lives in the src/lib.rs file.
+Using that structure, integration tests can test the library crate with use to make the important functionality available.
