@@ -14,19 +14,17 @@ fn main() {
     unwrap_or_else will pass the inner value of the Err to the closure
     */
     let config = Config::new(&args).unwrap_or_else(|err| {
-        println!("Problem parsing arguments: {}", err);
+        eprintln!("Problem parsing arguments: {}", err);
         process::exit(1);
     });
 
-    println!("Searching for {}", config.query);
-    println!("In file {}", config.filename);
-
+    println!("Searching for {} in file {}", config.query, config.filename);
     /*
-        Because run returns () in the success case, we only care about detecting an error, so we don’t need unwrap_or_else to return 
+        Because run returns () in the success case, we only care about detecting an error, so we don’t need unwrap_or_else to return
         the unwrapped value because it would only be (). So we use 'if let' here !
     */
     if let Err(e) = minigrep::run(config) {
-        println!("Application error: {}", e);
+        eprintln!("Application error: {}", e);
 
         process::exit(1);
     }

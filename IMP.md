@@ -1323,7 +1323,7 @@ Lifetime annotations describe the relationships of the lifetimes of multiple ref
 
 Lifetime parameters must start with an apostrophe (')
 
-VERY IMPORTANT:
+===VERY IMPORTANT===
 
 *Lifetime annotations don’t change how long any of the references live.*
 
@@ -1332,7 +1332,7 @@ VERY IMPORTANT:
 *Every reference has a lifetime and you need to specify lifetime parameters for functions or structs that use references.*
 
 *When returning a reference from a function, the lifetime parameter for the return type needs to match the lifetime parameter for one of the parameters.*
-(The returned reference from the function cannot be a value created within the function since in that case the reference becomes a dangling reference)
+(The returned reference from the function cannot be a value created within the function since in that case the reference becomes a dangling reference, once the function scope ends)
 
 Example:
 
@@ -1775,3 +1775,72 @@ file into scope with a use statement beacuse
 
 To use integration tests for binary crates, We have to have a straightforward src/main.rs file that calls logic that lives in the src/lib.rs file.
 Using that structure, integration tests can test the library crate with use to make the important functionality available.
+
+
+----------------------------------------------------------- CLOSURES IN RUST -----------------------------------------------------------
+
+Rust’s closures are anonymous functions you can save in a variable or pass as arguments to other functions. 
+You can create the closure in one place and then call the closure to evaluate it in a different context. 
+Unlike functions, closures can capture values from the scope in which they’re defined. 
+
+Examples:
+
+```
+fn  add_one_v1   (x: u32) -> u32 { x + 1 }      // Function
+let add_one_v2 = |x: u32| -> u32 { x + 1 };     // Closure with annotaion
+let add_one_v3 = |x|             { x + 1 };     // Closure without annotaion
+let add_one_v4 = |x|               x + 1  ;     // Closure with braces since it has only one statement in its body
+```
+
+Closures can capture values from their environment in three ways:-
+
+1) Taking ownership 2) Borrowing mutably 3) Borrowing immutably
+
+The Fn traits are provided by the standard library. All closures implement at least one of the traits: 
+
+* Fn -> Fn borrows values from the environment immutably.
+
+* FnMut -> FnMut can change the environment because it mutably borrows values.
+
+* FnOnce ->  Consumes/takes ownership of varaibles in the closure’s environment. The Once part of the name represents the fact that the closure 
+             can’t take ownership of the same variables more than once, so it can be called only once.
+
+
+If you want to force the closure to take ownership of the values it uses in the environment, you can use the move keyword before the parameter list. This technique is mostly useful when passing a closure to a new thread to move the data so it’s owned by the new thread.
+
+
+Eg:
+
+```
+fn main() {
+    let x = vec![1, 2, 3];
+
+    let equal_to_x = move |z| z == x; // The closure as taken ownership of "x" here, if this closure is never called then ownership is not taken here
+
+    println!("can't use x here: {:?}", x); // cannot use varaible "x" here since its ownership was taken by the closure
+
+    let y = vec![1, 2, 3];
+
+    assert!(equal_to_x(y)); 
+}
+```
+
+Closure Type annotations:
+
+Closures are usually short and relevant only within a narrow context unlike functions. 
+The compiler is reliably able to infer the types of the parameters and the return type.
+
+But for the compiler to automatically infer the closures types we must call it from somewhere otherwise explicity specify type annotaions.
+The first time we call the closure with some value, the compiler infers the types and those types are then locked in to the closure 
+now we will a type error if we try to use a different type with the same closure.
+
+Example:
+```
+fn main() {
+    let example_closure = |x| x;
+    let s = example_closure(String::from("hello"));
+    let n = example_closure(5); // ERROR ! since the compiler has previously infered that the closure takes a String 
+}
+```
+
+
