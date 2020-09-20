@@ -1844,3 +1844,189 @@ fn main() {
 ```
 
 
+----------------------------------------------------------- ITERATORS IN RUST -----------------------------------------------------------
+
+The iterator pattern allows you to perform some task on a sequence of items in turn.
+
+In Rust, iterators are *lazy*, meaning they have no effect until you call methods that consume the iterator to use it up. 
+
+```
+    let v1 = vec![1, 2, 3];
+
+    let v1_iter = v1.iter(); // This creates an iterator and does nothing since iterators are lazy
+
+    for val in v1_iter {            // The "for" consumes the itertor here
+        println!("Got: {}", val);
+    }
+```
+
+Now look at this:
+
+```
+let v1 = vec![1, 2, 3];
+
+let mut v1_iter = v1.iter();
+
+v1_iter.next();
+v1_iter.next();
+
+```
+
+In the above example "v1_iter" mutable since calling the next method on an iterator changes internal state that the iterator uses to keep track of where it is in the sequence.
+
+So, calling next() uses up or consumes the iterator.
+
+In case of the for-loop, the loop took ownership of v1_iter and made it mutable behind the scenes so we did not have to make v1_iter mutable
+
+* Methods that Consume the Iterator
+
+ There are 2 types of methods on iterators...
+
+ 1) CONSUMING adaptors: Methods that call next, these must takes ownership of the iterator and iterates through the items 
+    by repeatedly calling next, thus consuming the iterator.
+
+    Example:
+
+    ```
+        let v1 = vec![1, 2, 3];
+
+        let v1_iter = v1.iter();
+
+        let total: i32 = v1_iter.sum(); // sum() is a consuming adapter
+
+        
+        v1_iter.next() // INVALID ! because ownership of "v1_iter" was lost to "sum()"
+
+    ```
+
+2) ITERATOR adaptors: These take a iterator and return a new iterator, we can chain multiple calls to iterator adaptors to perform complex actions in a readable way. 
+
+   *But because all iterators are lazy, you have to call one of the consuming adaptor methods to get results from calls to iterator adaptors.*
+
+    Example:
+
+    ```
+    let v1: Vec<i32> = vec![1, 2, 3];
+
+    let v2: Vec<_> = v1.iter().map(|x| x + 1).collect(); // Here collect is a consuming adapter that consumed the iterator given by map() 
+
+    assert_eq!(v2, vec![2, 3, 4]);
+
+    ```
+
+    collect() can take anything iterable, and turn it into a relevant collection.
+    The type is infered on or can be specified in many ways...
+
+    ```
+    let a = [1, 2, 3];
+
+    let doubled: Vec<i32> = a.iter() .map(|&x| x * 2).collect(); 
+    // Here type is infered from "doubled: Vec<i32>", without this code wont work since type cannot be infered
+
+    let doubled = a.iter().map(|x| x * 2).collect::<Vec<i32>>(); // Using the 'turbofish' on "collect" instead of annotating doubled
+
+    let doubled = a.iter().map(|x| x * 2).collect::<Vec<_>>(); // collect() only cares about what you're collecting into, so <Vec<_>> also works
+    ```
+
+
+TYPES OF ITERATORS:
+(https://stackoverflow.com/questions/34733811/what-is-the-difference-between-iter-and-into-iter)
+
+The iter method produces an iterator over immutable references. 
+
+If we want to create an iterator that takes ownership of the data and returns owned values, we can call into_iter instead of iter. 
+
+Similarly, if we want to iterate over mutable references, we can call iter_mut instead of iter.
+
+* iter() iterates over the items by reference
+
+* into_iter() iterates over the items, moving them into the new scope
+
+* iter_mut() iterates over the items, giving a mutable reference to each item
+
+So for x in my_vec { ... } is essentially equivalent to my_vec.into_iter().for_each(|x| ... ) - both move the elements of my_vec into the ... scope.
+
+If you just need to "look at" the data, use iter, if you need to edit/mutate it, use iter_mut, and if you need to give it a new owner, use into_iter.
+
+Example:
+
+```
+struct Counter {
+    pub count: u32,
+}
+
+impl Counter {
+    fn new(arg: u32) -> Counter {
+        Counter { count: arg }
+    }
+}
+
+fn main() {
+    let mut v1: Vec<Counter> = vec![Counter::new(1), Counter::new(2), Counter::new(3)];
+
+    let mut v2: Vec<_> = v1
+        .iter_mut()
+        .map(|x| {
+            x.count = 5; // Not allowed if "iter()" was used instead of "iter_mut()"
+            x * 2
+        })
+        .collect();
+}
+
+```
+
+
+* Implementing "Iterator" Trait
+
+All iterators implement a trait named Iterator that is defined in the standard library.
+
+You must have a associated type "Item" and a "next()" function when implementing the iterator. 
+The next function must returns a `Option<Self::Item>` here "item" is the associated type you defined.
+
+Once a type implements the "Iterator" trait all library methods like map(), zip(), etc are avilable on that type.
+
+A complete example of implementing iterators:
+
+```
+struct Counter { // A custom type, with private struct varaible "count"
+    count: u32,
+}
+
+impl Counter {
+    fn new() -> Counter {     // A "new" method to create instances of "Counter"
+        Counter { count: 0 }
+    }
+}
+
+impl Iterator for Counter {  // Implement "Iterator" for "Counter"
+
+    type Item = u32;          // The associated Item type for our iterator is u32, meaning the iterator will return u32 values.
+
+
+    // Create an iterator that will only ever count from 1 to 5.
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.count < 5 {
+            self.count += 1;
+            Some(self.count)
+        } else {
+            None
+        }
+    }
+}
+
+// Since "Counter" implements iterator trait all iterator methods are available on it
+#[test]
+fn using_other_iterator_trait_methods() {
+
+    let sum: u32 = Counter::new()    // take the values produced by an instance of Counter
+        .zip(Counter::new().skip(1)) // pair them with values produced by another Counter instance after skipping the first value 
+                                        (zip produces only four pairs; the theoretical fifth pair (5, None) is never produced because zip returns None when either of its input iterators return None)
+
+        .map(|(a, b)| a * b)         // multiply each pair together
+        .filter(|x| x % 3 == 0)      // keep only those results that are divisible by 3
+        .sum();                      // add all the resulting values together
+    assert_eq!(18, sum);
+}
+fn main() {}
+```
