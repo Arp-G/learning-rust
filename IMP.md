@@ -2030,3 +2030,11 @@ fn using_other_iterator_trait_methods() {
 }
 fn main() {}
 ```
+
+* PERFORMANCE OF ITERATORS VS LOOPS
+
+Iterators, although a high-level abstraction, get compiled down to roughly the same code as if you’d written the lower-level code yourself using loops.
+
+Iterators are one of Rust’s zero-cost abstractions, by which we mean using the abstraction imposes no additional runtime overhead. 
+
+Closures and iterators are Rust features inspired by functional programming language ideas. They contribute to Rust’s capability to clearly express high-level ideas at low-level performance. The implementations of closures and iterators are such that runtime performance is not affected. This is part of Rust’s goal to strive to provide zero-cost abstractions.
