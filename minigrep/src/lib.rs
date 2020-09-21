@@ -1,29 +1,39 @@
+use std::env;
 use std::error::Error;
-use std::fs; // For the trait object Box<dyn Error>
-use std::env; // For working with environment varaibles to distinguish between case sensitive and insensitive grep
+use std::fs; // For the trait object Box<dyn Error> // For working with environment varaibles to distinguish between case sensitive and insensitive grep
 
 pub struct Config {
     pub query: String,
     pub filename: String,
-    pub case_sensitive: bool
+    pub case_sensitive: bool,
 }
 
 impl Config {
-    pub fn new(args: &[String]) -> Result<Config, &'static str> {
+    // The env::args function returns a iterator of type std::env::Args (that is std::env::Args implements the Iterator trait)
+    // we’re taking ownership of args and we’ll be mutating args(when we call next()) by iterating over it, we can add the mut keyword
+    pub fn new(mut args: env::Args) -> Result<Config, &'static str> {
+        args.next(); // First value of command line args is the name of the program file, so we ignore it here
+
+        let query = match args.next() {
+            Some(arg) => arg,
+            None => return Err("Didn't get a query string"),
+        };
+
+        let filename = match args.next() {
+            Some(arg) => arg,
+            None => return Err("Didn't get a file name"),
+        };
+
         if args.len() < 3 {
             return Err("not enough arguments");
         }
 
-        // https://doc.rust-lang.org/book/ch12-03-improving-error-handling-and-modularity.html#the-trade-offs-of-using-clone
-        let query = args[1].clone();
-        let filename = args[2].clone();
-
         /* If 'CASE_INSENSITIVE' is not set 'env::var("CASE_INSENSITIVE")' returns an Result::Err and is_err() returns true, thus case_sensitive = true
-        
-         Here we don’t care about the value of the "CASE_INSENSITIVE" environment variable, just whether it’s set or unset, so we’re checking is_err rather 
+
+         Here we don’t care about the value of the "CASE_INSENSITIVE" environment variable, just whether it’s set or unset, so we’re checking is_err rather
          than using unwrap, expect, or any of the other methods we’ve seen on Result.
         */
-        let case_sensitive = env::var("CASE_INSENSITIVE").is_err(); 
+        let case_sensitive = env::var("CASE_INSENSITIVE").is_err();
 
         Ok(Config {
             query,
@@ -67,31 +77,19 @@ This is needed since we returns a Vector of references, without the lifetime we 
 "this function's return type contains a borrowed value, but the signature does not say whether it is borrowed from `query` or `contents`
 */
 pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
-    let mut results = Vec::new();
-
-    for line in contents.lines() {
-        if line.contains(query) {
-            results.push(line);
-        }
-    }
-
-    results
+    contents
+        .lines()
+        .filter(|line| line.contains(query))
+        .collect()
 }
 
-pub fn search_case_insensitive<'a>(
-    query: &str,
-    contents: &'a str,
-) -> Vec<&'a str> {
+pub fn search_case_insensitive<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
     let query = query.to_lowercase();
-    let mut results = Vec::new();
 
-    for line in contents.lines() {
-        if line.to_lowercase().contains(&query) {
-            results.push(line);
-        }
-    }
-
-    results
+    contents
+        .lines()
+        .filter(|line| line.contains(&query))
+        .collect()
 }
 
 #[cfg(test)]
