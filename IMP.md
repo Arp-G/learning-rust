@@ -310,6 +310,13 @@ Thus, When enum values have data inside them, you can use match or if let to ext
 A binary crate is an executable project that has a main() method. A library crate is a group of components that can be reused in other projects. 
 Unlike a binary crate, a library crate does not have an entry point (main() method).
 
+The cargo install command allows you to install and use binary crates locally. 
+Note that you can only install packages that have binary targets. 
+A binary target is the runnable program that is created if the crate has a src/main.rs file or another file specified as a binary, 
+as opposed to a library target that isn’t runnable on its own but is suitable for including within other programs. 
+
+All binaries installed with cargo install are stored in the installation root’s(path where RUST is installed) bin folder.
+
 * By deafult when we create a new package using `cargo new package-name`, Cargo follows a convention that src/main.rs is the crate root of a binary crate with the same name as the package. 
 
 * Likewise, Cargo knows that if the package directory contains src/lib.rs, the package contains a library crate with the same name as the package, and src/lib.rs is its crate root.
