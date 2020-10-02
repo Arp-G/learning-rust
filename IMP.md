@@ -2045,3 +2045,212 @@ Iterators, although a high-level abstraction, get compiled down to roughly the s
 Iterators are one of Rust’s zero-cost abstractions, by which we mean using the abstraction imposes no additional runtime overhead. 
 
 Closures and iterators are Rust features inspired by functional programming language ideas. They contribute to Rust’s capability to clearly express high-level ideas at low-level performance. The implementations of closures and iterators are such that runtime performance is not affected. This is part of Rust’s goal to strive to provide zero-cost abstractions.
+
+
+----------------------------------------------------------- SMART POINTERS-----------------------------------------------------------
+
+Unlike general `&` references used to borrow values, smart pointers have additional capabilities.
+
+Smart pointers, are data structures that not only act like a pointer but also have additional metadata and capabilities. The difference between references 
+and smart pointers is that references are pointers that only borrow data; in contrast, in many cases, smart pointers own the data they point to.
+
+Some examples of smart pointers are String and Vec<T>. They own some memory and allow you to manipulate it. They also have metadata (such as their capacity) and extra capabilities or guarantees (such as with String ensuring its data will always be valid UTF-8).
+
+Smart pointers are usually implemented using structs. 
+The characteristic that distinguishes a smart pointer from an ordinary struct is that smart pointers implement the Deref and Drop traits. 
+
+* The Deref trait allows an instance of the smart pointer struct to behave like a reference so you can write code that works with either references or smart pointers. 
+
+* The Drop trait allows you to customize the code that is run when an instance of the smart pointer goes out of scope. 
+
+
+== Using Box<T> to Point to Data on the Heap ==
+
+Box<T> is a most straightforward smart pointer. Boxes allow you to store data on the heap rather than the stack. What remains on the stack is the pointer to the heap data.
+
+Boxes don’t have performance overhead, other than storing their data on the heap instead of on the stack. But they don’t have many extra capabilities either.
+
+Just like any owned value, when a box goes out of scope, it will be deallocated. The deallocation happens for the box (stored on the stack) and the data it points to (stored on the heap).
+
+The Box<T> type is a smart pointer because it implements the Deref trait, which allows Box<T> values to be treated like references. When a Box<T> value goes out of scope, the heap data that the box is pointing to is cleaned up as well because of the Drop trait implementation.
+
+Boxes are used in situations like...
+
+1) When you have a large amount of data and you want to transfer ownership but ensure the data won’t be copied when you do so:
+
+    transferring ownership of a large amount of data can take a long time because the data is copied around on the stack. To improve performance in this situation, we can store the large amount of data on the heap in a box. Then, only the small amount of pointer data is copied around on the stack, while the data it references stays in one place on the heap.
+
+2) When you want to own a value and you care only that it’s a type that implements a particular trait rather than being of a specific type 
+    - This deals with the trait object
+
+3) When you have a type whose size can’t be known at compile time and you want to use a value of that type in a context that requires an exact size
+
+Example of 3rd case:
+
+A cons list iis a recursive type(One type whose size can’t be known at compile time is a recursive type) used commonly in functional laguages.
+
+Like in elixir: `[1 | [2 | [3 | [] ] ] ] # [1, 2, 3]`
+
+Rust impllementation of Cons list
+
+```
+// The enum has two values List::Cons and List::Nil 
+enum List {
+    Cons(i32, List), // The first value is a i32 and second is a `List` which is another instance of our `List` enum
+    Nil,
+}
+
+use crate::List::{Cons, Nil};
+
+fn main() {
+    // Trying to define a cons list using the enum we defined
+    // The first Cons value holds 1 and another List value. This List value is another Cons value that holds 2 and another List value and so on..
+    let list = Cons(1, Cons(2, Cons(3, Nil)));
+}
+
+```
+
+This gives us an error like:
+
+```
+error[E0072]: recursive type `List` has infinite size
+= help: insert indirection (e.g., a `Box`, `Rc`, or `&`) at some point to make `List` representable
+```
+
+Why?
+
+In order to determine how much space to allocated for a Enum value, Rust goes through each of the variants to see which variant needs the most space.
+
+When Rust tries to determine how much space a recursive type like the List enum we defined. The compiler starts by looking at the Cons variant, which holds a value of type i32 and a value of type List. Therefore, Cons needs an amount of space equal to the size of an i32 plus the size of a List. To figure out how much memory the List type needs, the compiler looks at the variants, starting with the Cons variant. The Cons variant holds a value of type i32 and a value of type List, and this process continues infinitely.
+
+Solution using Box<T> smart pointer by storing list in Heap:
+
+```
+enum List {
+    Cons(i32, Box<List>),
+    Nil,
+}
+
+use crate::List::{Cons, Nil};
+
+fn main() {
+    let list = Cons(1, Box::new(Cons(2, Box::new(Cons(3, Box::new(Nil))))));
+}
+
+```
+
+The Cons variant will need the size of an i32 plus the space to store the box’s pointer data.
+By using a box, we’ve broken the infinite, recursive chain, so the compiler can figure out the size it needs to store a List value.
+
+Because a Box<T> is a pointer, Rust always knows how much space a Box<T> needs: a pointer’s size doesn’t change based on the amount of data it’s pointing to. 
+This means we can put a Box<T> inside the Cons variant instead of another List value directly. 
+The Box<T> will point to the next List value that will be on the heap rather than inside the Cons variant.
+
+Boxes provide only the indirection and heap allocation; they don’t have any other special capabilities, like those we’ll see with the other smart pointer types. They also don’t have any performance overhead that these special capabilities incur, so they can be useful in cases like the cons list where the indirection is the only feature we need.
+
+== DEREF Trait ==
+
+Implementing the Deref trait allows you to customize the behavior of the dereference operator, *
+
+Using the Deref trait a smart pointer can be treated like a regular reference, you can write code that operates on references and use that code with smart pointers too.
+
+---------------------------
+COMPLETE EXAMPLE IMPORTANT:
+---------------------------
+```
+use std::ops::Deref;
+
+// Struct with single generic parameter <T>
+struct MyBox<T>(T);
+
+impl<T> MyBox<T> {
+    fn new(x: T) -> MyBox<T> {
+        MyBox(x)
+    }
+}
+
+// Creating our own smart pointer by implementing deref
+impl<T> Deref for MyBox<T> {
+    type Target = T; // associated type for the Deref trait to use
+
+    fn deref(&self) -> &T {
+        &self.0 // Returns the first value of the enum, We return a reference to the underlying type which can be directly dereferenced !
+    }
+}
+
+fn main() {
+    let x = 5;
+    let y = &x;
+    let z = Box::new(x);
+    let a = MyBox::new(x);
+
+
+    assert_eq!(5, x);
+    assert_eq!(5, *y);
+    assert_eq!(5, *z); // Possible beacuse Box implements deref trait
+    
+    assert_eq!(5, *a); // Possible since MyBox implements deref trait, *a -> *(a.deref()) -> *(&self.0) -> self -> 5
+}
+```
+
+Without the Deref trait, the compiler can only dereference & references. The deref method gives the compiler the ability to take a value of any type that implements Deref and call the deref method to get a & reference that it knows how to dereference.
+
+So, when we do *a, Rust substitutes the * operator with a call to the deref method. So, `*a becomes *(a.deref())`
+This Rust feature lets us write code that functions identically whether we have a regular reference or a type that implements Deref.
+
+The deref methods returns a plain reference and the derefence(*) is still needed due to ownership system.
+(If the deref method returned the value directly instead of a reference to the value, the value would be moved out of self. We don’t want to take ownership of the inner value inside MyBox<T> in this case or in most cases where we use the dereference operator.)
+
+== Implicit Deref Coercions ==
+
+Deref coercion is a convenience that Rust performs on arguments to functions and methods. Deref coercion works only on types that implement the Deref trait.
+Deref coercion converts such a type into a reference to another type.
+
+Deref coercion happens automatically when we pass a reference to a particular type’s value as an argument to a function or method that doesn’t match the parameter type in the function or method definition. A sequence of calls to the deref method converts the type we provided into the type the parameter needs.
+
+When the Deref trait is defined for the types involved, Rust will analyze the types and use Deref::deref as many times as necessary to get a reference to match the parameter’s type. The number of times that Deref::deref needs to be inserted is resolved at compile time, so there is no runtime penalty for taking advantage of deref coercion!
+
+Examples:
+
+deref coercion can convert &String to &str because String implements the Deref trait such that it returns str. 
+
+```
+// Defination of MyBox that implements deref from previous example
+
+fn hello(name: &str) {
+    println!("Hello, {}!", name);
+}
+
+fn main() {
+    let m = MyBox::new(String::from("Rust"));
+
+    hello(&m); // This Works !
+}
+
+```
+hello() takes a &str but we passed it a &MyBox<String>. This works since rust will call deref multiple times on &MyBox<String> and convert it to &str
+(It works because, the standard library provides an implementation of Deref on String that returns a string slice)
+
+
+Without deref we had to do:
+
+`hello(&(*m)[..]);`
+
+Explaination: (This is what deref automatically does for us here):
+------------------------------------------------------------------
+
+*m -> *(MyBox::new(String)) -> *(MyBox::new(String).deref()) -> *(&String) -> String
+
+&(*m)[..] -> &(String) -> &String[..] -> &str
+
+-----------
+
+Similar to how you use the Deref trait to override the * operator on immutable references, you can use the DerefMut trait to override the * operator on mutable references.
+
+That is if you have a mutable type T that implements `T: DerefMut<Target=U>` so on call to deref we get a `&mut U` 
+
+so `*(mut T) -> *(mut T.deref()) -> *(&mut U) -> U`
+
+Also, Rust can coerce a mutable reference to an immutable one that is for a mutable type T, `mut T.deref() -> &U` and not `&mut U`
+but reverse is not possible: immutable references will never coerce to mutable references due to borrowing rules
+(That is if we convert a immutable refernece to mutable which is okay BUT there might exist other immutable referces that is not allowed).
