@@ -2296,3 +2296,100 @@ fn main() {
 }
 
 ```
+
+== Rc<T>, the Reference Counted Smart Pointer ==
+
+https://doc.rust-lang.org/stable/rust-by-example/std/rc.html
+https://doc.rust-lang.org/std/rc/
+
+*Single-threaded reference-counting pointers*
+
+Shared references in Rust disallow mutation by default, and Rc is no exception: you cannot generally obtain a mutable reference to something inside an Rc. If you need mutability, put a Cell or RefCell inside the Rc; see an example of mutability inside an Rc.
+
+Usually we can have only one owner to a value however there might be instances where we require a value to be owned by multiple owners.
+
+Rc<T> or reference counting provides shared ownership of a value of type T, allocated in the heap and keeps track of the number of references to a value which determines whether or not a value is still in use. 
+
+If there are zero references to a value, the value can be cleaned up without any references becoming invalid.
+
+Example using cons list:
+
+Think of cons list which is a part of two other cons list like:
+
+```
+a = 5 -> 10 -> nil
+
+b = 3 -> a
+      
+c = 4-> b
+```
+
+Here both b and c use the cons list a as there part, if we try to implement this like...
+
+```
+enum List {
+    Cons(i32, Box<List>), // Recursive data structure where 2nd item is a Box of itself(List)
+    Nil,
+}
+
+use crate::List::{Cons, Nil};
+
+fn main() {
+    let a = Cons(5, Box::new(Cons(10, Box::new(Nil))));
+
+    let b = Cons(3, Box::new(a)); // ERROR ! value moved here,              owner ship of 'a' given to 'b'
+
+    let c = Cons(4, Box::new(a)); // ERROR ! value used here after move,    'c' tries to own a but 'a' belongs to 'b'
+}
+```
+
+We could change the definition of Cons to hold references instead to avoid passing ownership, but then we would have to specify lifetime parameters.
+But this would create other problems like: 
+
+By specifying lifetime parameters, we would be specifying that every element in the list will live at least as long as the entire list.
+Also, `let a = Cons(10, &Nil);` is invalid now since temporary `Nil` value would be dropped before a could take a reference to it.
+
+Other option is to create copys of 'a' for both 'b' and 'c' but that would be bad for performance.
+
+USING Rc<T> to solve this problem:
+----------------------------------
+
+```
+enum List {
+    Cons(i32, Rc<List>), // Now we wrap the 2nd type in Rc<> to enable reference counting
+    Nil,
+}
+
+use crate::List::{Cons, Nil};
+
+use std::rc::Rc; // use statement to bring Rc<T> into scope because it’s not in the prelude
+
+fn main() {
+    let a = Rc::new(Cons(5, Rc::new(Cons(10, Rc::new(Nil))))); // Wrap 'a' in a Rc<> to enable having multiple owners of 'a'
+
+    // we call the Rc::clone function and pass a reference to the Rc<List> in 'a' as an argument.
+    // Calling Rc::clone() creates a new owner of 'a' and increases ownership count by 1
+    // Calling a.clone() would also work here but would produce a deep copy of all the data BUT calling Rc::clone(&a) only increases reference count
+
+    let b = Cons(3, Rc::clone(&a)); 
+    let c = Cons(4, Rc::clone(&a));
+
+    println!("Reference count of a = {}", Rc::strong_count(&a)); // 3 (Because 'a' has 3 owners 'a', 'b' and 'c')
+}
+
+```
+
+IMPORTANT NOTES:
+
+1) Reference count of an Rc increases by 1 whenever an Rc is cloned and produces a new pointer to the same allocation in the heap, 
+Also, reference count is decreases by 1 whenever one cloned Rc is dropped out of the scope. When an Rc's reference count becomes zero, 
+which means there are no owners remained, both the Rc and the value are all dropped.
+
+2) Invoking clone on Rc produces a new pointer to the same allocation in the heap. When the last Rc pointer to a given allocation is destroyed, 
+the value stored in that allocation (often referred to as "inner value") is also dropped.
+
+3) Cloning an Rc never performs a deep copy. Cloning creates just another pointer to the wrapped value, and increments the count.
+
+4) Two `Rc`s are equal if their inner values are equal, Eg: `rc_a.eq(&rc_b)` // true if both wrap same value
+
+5) We can use methods of a value directly, Eg: If `rc_a` is a string we can do `rc_a.len()`
