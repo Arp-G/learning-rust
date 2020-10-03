@@ -700,7 +700,7 @@ Use this, to get this functionality: https://crates.io/crates/unicode-segmentati
 
 * HashMap<K, V>
 
-A hash map stores key value pairs, where both thew keys and values must be of homogenous types(all of the keys must have the same type, and all of the values must have the same type).
+A hash map stores key value pairs, where both the keys and values must be of homogenous types(all of the keys must have the same type, and all of the values must have the same type).
 
 Just like vectors, hash maps store their data on the heap.
 
@@ -800,7 +800,7 @@ for word in text.split_whitespace() {
 
 ----------------------------------------------------------- ERROR HANDLING -----------------------------------------------------------
 
-* The panic! macro makes our code pani, cWhen the panic! macro executes, your program will print a failure message, unwind and clean up the stack, and then quit.
+* The panic! macro makes our code panic, When the panic! macro executes, your program will print a failure message, unwind and clean up the stack, and then quit.
 
   By default on panic our code will unwind which means Rust walks back up the stack and cleans up the data from each function it encounters, but this might be slow,
   alternative is to immediately abort, which ends the program without cleaning up. 
@@ -2254,3 +2254,45 @@ so `*(mut T) -> *(mut T.deref()) -> *(&mut U) -> U`
 Also, Rust can coerce a mutable reference to an immutable one that is for a mutable type T, `mut T.deref() -> &U` and not `&mut U`
 but reverse is not possible: immutable references will never coerce to mutable references due to borrowing rules
 (That is if we convert a immutable refernece to mutable which is okay BUT there might exist other immutable referces that is not allowed).
+
+== DROP TRAIT ==
+
+Drop trait requires us to implement the `drop` method which gets called automatically when a value goes out of scope.
+The Drop trait is included in the prelude, so we don’t need to bring it into scope.
+The body of the drop function is where you would place any logic that you wanted to run when an instance of your type goes out of scope, the memory will
+automatically get cleared by rust but the drop method allows you to do additional tasks like release resources like files or network connections, etc.
+
+The drop method will be called automatically when a value goes out of scope, it is **NOT** possible for you to call the Drop trait’s drop method manually 
+beacause Rust would still automatically call drop on the value at the end of its scope. This would be a double free error !
+
+However you can force clean up early by calling `std::mem::drop` method and passing the value we want to force to be dropped early as an argument.
+This function is in prelude so we don't need to include it. Calling it will invoke our drop implementaion.
+
+Example:
+
+```
+struct CustomSmartPointer {
+    data: String,
+}
+
+impl Drop for CustomSmartPointer {
+
+    // Implement drop method of Drop Trait
+    fn drop(&mut self) {
+        println!("Dropping CustomSmartPointer with data `{}`!", self.data);
+    }
+}
+
+fn main() {
+    let c = CustomSmartPointer {
+        data: String::from("some data"),
+    };
+   
+    // c.drop(); This wont work cant call drop method of drop trait directly, will give error: "explicit destructor calls not allowed"
+     
+    // Called std::mem::drop to force drop value, "Dropping CustomSmartPointer with data `some data`!" is printed !
+    // If this was not called Rust would call drop() method from Drop trait automatically after the main() method ends
+    drop(c); 
+}
+
+```
