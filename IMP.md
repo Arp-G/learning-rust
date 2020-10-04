@@ -8,7 +8,7 @@ POINTS TO REMEMBER:
 
 * We can have at most one mutable refereence to a variable in a perticular scope
 
-* We can't have a immutable as well as a mutable reference to a varaible in teh same scope
+* We can't have a immutable as well as a mutable reference to a varaible in the same scope
 
 * Rust automatically detects that the scopr of a mutable reference has ended when the reference is not longer used later
 and thus is allows defining a mutable reference to the varaible since the immutable reference is no longer in scope
@@ -2304,8 +2304,6 @@ https://doc.rust-lang.org/std/rc/
 
 *Single-threaded reference-counting pointers*
 
-Shared references in Rust disallow mutation by default, and Rc is no exception: you cannot generally obtain a mutable reference to something inside an Rc. If you need mutability, put a Cell or RefCell inside the Rc; see an example of mutability inside an Rc.
-
 Usually we can have only one owner to a value however there might be instances where we require a value to be owned by multiple owners.
 
 Rc<T> or reference counting provides shared ownership of a value of type T, allocated in the heap and keeps track of the number of references to a value which determines whether or not a value is still in use. 
@@ -2393,3 +2391,130 @@ the value stored in that allocation (often referred to as "inner value") is also
 4) Two `Rc`s are equal if their inner values are equal, Eg: `rc_a.eq(&rc_b)` // true if both wrap same value
 
 5) We can use methods of a value directly, Eg: If `rc_a` is a string we can do `rc_a.len()`
+
+
+
+== RefCell<T> and the Interior Mutability Pattern ==
+(https://users.rust-lang.org/t/help-with-understanding-refcell-t-and-interior-mutability-pattern/49657)
+
+Shared references in Rust disallow mutation by default, and Rc is no exception: you cannot generally obtain a mutable reference to something inside an Rc. If you need mutability, put a Cell or RefCell inside the Rc.
+
+Interior mutability is a design pattern in Rust that *allows you to mutate data even when there are immutable references to that data*; normally, this action is disallowed by the borrowing rules. 
+
+NOTES:
+
+* Unlike Rc<T>, the RefCell<T> type represents single ownership over the data it holds. So RcfCell<T> is similar to Box<T> ?
+
+* With references and Box<T>, the borrowing rules’ invariants are enforced at compile time. With RefCell<T>, these invariants are enforced at runtime.
+
+* With references, if you break these rules, you’ll get a compiler error. With RefCell<T>, if you break these rules, your program will panic and exit.
+
+* The advantages of checking the borrowing rules at compile time are that errors will be caught sooner in the development process. The advantage of checking the borrowing rules at runtime instead is that certain memory-safe scenarios are then allowed, whereas they are disallowed by the compile-time checks.
+
+* The RefCell<T> type is useful when you’re sure your code follows the borrowing rules but the compiler is unable to understand and guarantee that.
+
+* Similar to Rc<T>, RefCell<T> is only for use in single-threaded scenarios and will give you a compile-time error if you try using it in a multithreaded context.
+
+
+So....
+
+Box<T> allows immutable or mutable borrows checked at compile time; 
+Rc<T> allows only immutable borrows checked at compile time; 
+RefCell<T> allows immutable or mutable borrows() checked at *runtime*.
+
+How RefCell<T> Works?
+--------------------
+
+When creating normal immutable and mutable references, we use the & and &mut syntax, respectively. 
+With RefCell<T>, we use the *borrow* and *borrow_mut* methods, which are part of the safe API that belongs to RefCell<T>.
+
+The borrow method returns the smart pointer type Ref<T>, and borrow_mut returns the smart pointer type RefMut<T>.
+Ref<T> and RefMut<T> are just a wrapper type for a immutably and mutably borrowed value from a RefCell<T> respectively.
+
+Both types implement Deref, so we can treat them like regular references.
+
+The RefCell<T> keeps track of how many Ref<T> and RefMut<T> smart pointers are currently active.
+
+Every time we call borrow, the RefCell<T> increases its count of how many immutable borrows are active. When a Ref<T> value goes out of scope, the count of immutable borrows goes down by one. 
+
+Just like the compile-time borrowing rules, *RefCell<T> lets us have many immutable borrows or one mutable borrow at any point in time.*
+
+If we try to violate these rules, rather than getting a compiler error as we would with references, the implementation of RefCell<T> *will panic at runtime*.
+
+Example:
+
+```
+use std::cell::RefCell;
+
+fn main() {
+   let val2 = Vec::new();
+   
+   val2.push(10); // cannot borrow `val2` as mutable, as it is not declared as mutablev
+   
+   // Using RefCell<T>
+   
+   let val1 = RefCell::new(Vec::new());
+   
+   let mut borrow_1 = val1.borrow_mut(); // The borrow_mut method returns a RefMut<T> smart pointer
+   
+   // We can directly call methods on the RefMut<T> smart pointer and they are called on the inner value that is the Vec<T> in this case
+   borrow_1.push(10);
+   
+   val1.borrow();    // RUNTIME ERROR ! thread 'main' panicked at 'already mutably borrowed: BorrowError'
+   
+   let mut borrow_2 = val1.borrow_mut();
+   
+   borrow_2.push(12); // RUNTIME ERROR ! thread 'main' panicked at 'already borrowed: BorrowMutError'
+}
+```
+
+Having Multiple Owners of Mutable Data by Combining Rc<T> and RefCell<T>
+------------------------------------------------------------------------
+
+If you have an Rc<T> that holds a RefCell<T>, you can get a value that can have multiple owners and that you can mutate safely!
+
+COMPLETE EXAMPLE OF CONS LIST USING RefCell<T>:-
+
+```
+#[derive(Debug)]
+enum List {
+    Cons(Rc<RefCell<i32>>, Rc<List>), // Our 'List' Enum now holds its data as a Rc<RefCell<i32>> and the rest of the 'List' as a Rc<List>
+    Nil,
+}
+
+use std::cell::RefCell;
+use std::rc::Rc;
+
+fn main() {
+    let value = Rc::new(RefCell::new(5)); // Wrap the value '5' in a RefCell<T> and then wrap it in a Rc<T>
+
+    // Here we use Rc::clone() to so both 'a' and 'value' have ownership of the inner 5 value 
+    // rather than transferring ownership from 'value' to 'a' or having a borrow from value.
+    // Next, we wrap the `List` again in a Rc<T> since we later wish to give ownership of 'a' to 'b' and 'c'
+    let a = Rc::new(List::Cons(Rc::clone(&value), Rc::new(List::Nil))); 
+    
+    // Add a new value '3' and '4' to 'b' and 'c' respectively using `Rc::new(RefCell::new())`
+    // Also, adding both 'b' and 'c' as the owners of 'a' by `Rc::clone(&a)`
+    let b = List::Cons(Rc::new(RefCell::new(3)), Rc::clone(&a));
+    let c = List::Cons(Rc::new(RefCell::new(4)), Rc::clone(&a));
+    
+    // At this point Rc<T> for '5' is owned by 2 owners 'value' and 'a'
+    // and Rc<T> for 'a' is owned by 3 owners 'a', 'b' and 'c'
+
+
+    // Here calling borrow_mut on 'value', uses the automatic dereferencing to dereference the Rc<T> to the inner RefCell<T>
+    // Then borrow_mut method on RefCell<T> returns a RefMut<T> smart pointer
+    // Now we use the dereference operator(*) on it and change the inner value.
+    
+    // HOW IT WORKS:-
+    // *value.borrow_mut() -> *(Rc<RefCell<T>>.borrow_mut()) -> 
+    // Now automatic dereferencing happens here since borrow_mut() is for RefCell<T> so it automatically deferences Rc<RefCell<T>> to RefCell<T> then ...
+    // -> *(RefCell<T>.borrow_mut()) -> *(RefMut<T>) -> 5 (since RefMut implements DerefMut)
+    *value.borrow_mut() += 10;
+
+    println!("a after = {:?}", a); // a after = Cons(RefCell { value: 15 }, Nil)
+    println!("b after = {:?}", b); // b after = Cons(RefCell { value: 3 }, Cons(RefCell { value: 15 }, Nil))
+    println!("c after = {:?}", c); // c after = Cons(RefCell { value: 4 }, Cons(RefCell { value: 15 }, Nil))
+    
+}
+```
