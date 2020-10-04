@@ -2711,4 +2711,12 @@ Summary of Box<T>, Rc<T> and RefCell<T>:
 * The RefCell<T> type with its interior mutability gives us a type that we can use when we need an immutable type 
   but need to change an inner value of that type; it also enforces the borrowing rules at runtime instead of at compile time.
 
+# INTERIOR MUTABILITY IN A NUTSHELL!
+
+mut is exclusive access and non-mut is shared access.
+Shared access means you have readonly immutable access but you can get mutable access through the interior mutability pattern using
+RefCell<T> if there does not exist any other mutable access to that data at that point, 
+otherwise code will panic like  thread 'main' panicked at 'already mutably borrowed: BorrowError'.
+*Interior mutability allowes us to get exclusive access(mut access) to something for which we only have shared access(non mut access).*
+
 -----------------------------------------------------------------------------------------------------------------------------------------------
