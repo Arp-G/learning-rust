@@ -2720,3 +2720,102 @@ otherwise code will panic like  thread 'main' panicked at 'already mutably borro
 *Interior mutability allowes us to get exclusive access(mut access) to something for which we only have shared access(non mut access).*
 
 -----------------------------------------------------------------------------------------------------------------------------------------------
+
+
+-----------------------------------------------------  FEARLESS CONCURRENCY ------------------------------------------------------------
+
+# Some Interesting theory:
+
+Programming languages implement threads in a few different ways. Many operating systems provide an API for creating new threads. This model where a language calls the operating system APIs to create threads is sometimes called 1:1, meaning *one operating system thread per one language thread.*
+
+Many programming languages provide their own special implementation of threads. Programming language-provided threads are known as *green threads*, and languages that use these green threads will execute them in the context of a different number of operating system threads. For this reason, the green-threaded model is called the M:N model: there are M green threads per N operating system threads, where M and N are not necessarily the same number.
+
+=========
+Runtime ?
+=========
+by runtime we mean code that is included by the language in every binary. This code can be large or small depending on the language, but every non-assembly language will have some amount of runtime code.
+
+*The green-threading M:N model requires a larger language runtime to manage threads.* 
+*As such, the Rust standard library only provides an implementation of 1:1 threading.*
+Because Rust is such a low-level language, there are crates that implement M:N threading if you would rather trade overhead for aspects such as more control over which threads run when and lower costs of context switching, for example.
+
+Examples:
+
+```
+// Create a new thread by passing a colusre to spawn
+
+thread::spawn(|| {
+        for i in 1..10 {
+            println!("hi number {} from the spawned thread!", i);
+
+            // The calls to thread::sleep force a thread to stop its execution for a short duration, allowing a different thread to run. 
+            thread::sleep(Duration::from_millis(1)); // Sleep for 1 ms
+        }
+    });
+```
+
+*A new thread will be stopped when the thread from which its started ends, whether or not it has finished running.*
+This means if we start a thread from the main thread that thread will stop when the main thread stops.
+
+
+`thread.spawn` returns a join handle over which we can wait using the join() method.
+Calling join on the handle blocks the thread currently running until the thread represented by the handle terminates. 
+
+```
+let handle = thread::spawn(|| {
+        // some code to execute in the thread
+    });
+
+
+    handle.join().unwrap(); // wait for thread
+```
+
+OWNERSHIP ?
+
+If the colsure in a thread captures a varaible from the outerscope then this might be a problem 
+
+Example:
+
+```
+use std::thread;
+
+fn main() {
+    let v = vec![1, 2, 3];
+
+    let handle = thread::spawn(|| {
+        println!("Here's a vector: {:?}", v);
+    });
+
+    drop(v); // oh no! the borrowed v in the thread is invalid now
+    // Even if we remove the drop(v) it still wont compile
+
+    handle.join().unwrap();
+}
+```
+
+Above code gives error like:
+
+`closure may outlive the current function, but it borrows `v`, which is owned by the current function`
+because Rust can’t tell how long the spawned thread will run, so it doesn’t know if the reference to v will always be valid.
+
+* Rust infers how to capture v, and because println! only needs a reference to v, the closure tries to borrow v. *
+
+# Transfer ownership to thread using `move`
+
+```
+use std::thread;
+
+fn main() {
+    let v = vec![1, 2, 3];
+
+    let handle = thread::spawn(move || { // ownership of the captured varaibles(that is v here) is passed to closure
+        println!("Here's a vector: {:?}", v);
+    });
+
+    // drop(v); This cant be done now as owner ship of v is lost here: Error, use of moved value: `v`
+
+    handle.join().unwrap();
+}
+```
+
+Thus, the move keyword overrides Rust’s conservative default of borrowing; it doesn’t let us violate the ownership rules.
