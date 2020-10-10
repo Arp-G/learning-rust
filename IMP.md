@@ -2945,3 +2945,133 @@ for received in rx {
 
 Note, here `for received in rx {...}` works and we can iterate over the `Receiver<T>` because it has a 
 blanked implementation of the `std::iter::IntoIterator` trait(having the next() method.
+
+
+## Shared State concurrency using Mutex<T> and Arc<T>
+
+Channels in Rust allow concurrency using message passing, we can also implement concurrency via shared state.
+
+In Rust a Mutex( mutual exclusion) primitive is useful for protecting shared data, it allows only one thread to access some data at any given time.
+To access some data a thread must first acquire a lock over that data and then mutate the data, also the thread must unlock the data afterwards.
+
+## IMP NOTES about Mutex<T>:
+
+
+* To access the data inside the mutex, we use the lock method to acquire the lock. 
+This call will block the current thread so it can’t do any work until it’s our turn to have the lock.
+
+* The call to lock would fail if another thread holding the lock panicked. 
+In that case, no one would ever be able to get the lock (this is called "poisoning" where a mutex is considered poisoned whenever a thread panics while holding the mutex.)
+
+* After we’ve acquired the lock,we get a mutable reference to the data inside. We must aquire a lock on the Mutex<T> to access the wrapped value `T` inside.
+
+ * Mutex<T> is a smart pointer.
+The call to lock returns a smart pointer called `MutexGuard`, wrapped in a `LockResult` that we handled with the call to unwrap. 
+The `MutexGuard` is also a smart pointer that implements `Deref` to point at our inner data (`pub fn lock(&self) -> LockResult<MutexGuard<'_, T>>`)
+the smart pointer also has a `Drop` implementation that releases the lock automatically when a `MutexGuard` goes out of scope.
+
+Example:
+
+```
+use std::sync::Mutex;
+
+fn main() {
+    let m = Mutex::new(5); // Here Rust infers type of `m` as Mutex<i32>
+
+    {
+
+        // This is a blocking operation that waits untill the current thread can acquire a lock over the data
+        //  LockResult is actaully like, `type LockResult<Guard> = Result<Guard, PoisonError<Guard>>;` 
+        // so we can call unwrap on it to get the underlying MutexGuard<i32> here
+        // `MutexGuard` is also a smart pointer that implements `Deref`, so we can do `*num = 6;`
+        let mut num = m.lock().unwrap(); // We have a mutable MutexGuard<i32>
+        *num = 6;
+
+    } // At this point the lock is released automatically since `MutexGuard` has a `Drop` implementation 
+      // that releases the lock automatically when a MutexGuard goes out of scope
+    
+    println!("m = {:?}", m);
+}
+```
+
+## Sharing Mutex accross mutiple threads using Arc<T>
+https://doc.rust-lang.org/std/sync/struct.Arc.html
+
+When we move a Mutex to a thread's closure it takes ownership of that Mutex, but then how can we pass it to other threads.
+
+We can use Rc<T> smart pointer here to have mutiple owners of the Mutex however this will give an error like...
+
+`Rc<Mutex<i32>> cannot be sent between threads safely.` 
+The compiler is also telling us the reason why: `the trait Send is not implemented for Rc<Mutex<i32>>`
+
+Thus, `Rc<T>` is not safe to share across threads. When `Rc<T>` manages the reference count, it adds to the count for each call to clone and subtracts from the count when each clone is dropped. But it doesn’t use any concurrency primitives to make sure that changes to the count can’t be interrupted by another thread.
+
+Unlike `Rc<T>`, `Arc<T>` uses atomic operations for its reference counting, so `Arc<T>` (atomic reference type) is safe to use in concurrent situations.
+So, `Arc<T>` allows us to have multiple owners even in cocurrent situtaions, but the disadvantage is that atomic operations are more expensive than ordinary memory accesses. If you are not sharing reference-counted allocations between threads, consider using `Rc<T>` for lower overhead.
+
+Arc<T> will implement `Send` and `Sync` as long as the T implements Send and Sync. 
+If you need to mutate through an Arc, use `Mutex`, `RwLock`, or one of the Atomic types wrapped in a Arc.
+
+### Something about Atomic Types(Optional):
+https://doc.rust-lang.org/std/sync/atomic/index.html
+
+All atomic types are guaranteed to be lock-free if they're available. This means they don't internally acquire a global mutex.
+Atomic types provide primitive shared-memory communication between threads, and are the building blocks of other concurrent types.
+The `std::sync::atomic` defines atomic versions of a select number of primitive types, including AtomicBool, AtomicIsize, AtomicUsize, AtomicI8, AtomicU16, etc. 
+Atomic types present operations that, when used correctly, synchronize updates between threads.
+Usage like: `let lock = Arc::new(AtomicUsize::new(1));`
+
+
+Example of having multiple owners of data using Arc<T>
+
+```
+use std::sync::{Arc, Mutex};
+use std::thread;
+
+fn main() {
+    let counter = Arc::new(Mutex::new(0)); // Wrap a `Mutex` having data `0` inside a `Arc`
+    let mut handles = vec![];
+
+    // Create 10 threads to concurrently haver ownership and increment the `counter` value
+    for _ in 0..10 {
+        let counter = Arc::clone(&counter);  // Create a new owner of the Mutex by calling Arc::clone (this is similar to Rc<T> clone)
+
+        let handle = thread::spawn(move || { // The new owner of the mutex that is `counter` is moved inside the thread's closure
+
+            // Aquire lock over the Mutex
+            // Arc<Mutex<i32>>.lock().unwrap() -> (Rust is automatically dereferencing) -> 
+            // Mutex<i32>.lock().unwrap() -> LockResult<MutexGuard<i32>>.unwrap() -> MutexGuard<i32>
+            let mut num = counter.lock().unwrap();
+
+            *num += 1;  // *MutexGuard<i32> ->(mutex guard implmene4ts deref trait) -> i32
+        });
+        handles.push(handle); // Push the threads handle in the handles vector
+    }
+
+    // Interate over each of the thread handles
+    for handle in handles {
+
+        // handle.join() will wait for each thread to complete, and the we call unwrap to get the underlying value
+        handle.join().unwrap();
+    }
+
+    // By this point since we have waited on the handles of all the threads in the above loop, 
+    // all threads have finished and we get the final value of counter that is 10
+    println!("Result: {}", *counter.lock().unwrap()); // counter is still a Arc<Mutex<i32>> so we have to lock it and then dereference to get the inner i32 value
+}
+```
+
+
+## RefCell<T> vs Mutex<T> & Rc<T> vs Arc<T>
+
+Here, in the above example counter is immutable but we could get a mutable reference to the value inside it to update it like `*num += 1;`; 
+this means Mutex<T> provides interior mutability, as the Cell family does.
+
+Infact, Mutex is just a generalization of the RefCell, which does not panic on concurrent access unlike RefCell, 
+but rather allows one to wait (blocking the current thread, until another thread finishes its part of work).
+
+Similarly, Arc<T> is similar to Rc<T> and provides safe multiple ownership in a concurrent environment.
+
+Just like Rc<T>, there was arisk of creating reference cycles, where two Rc<T> values refer to each other, causing memory leaks (we solved this using Weak links). 
+Similarly, Mutex<T> comes with the risk of creating deadlocks. These occur when an operation needs to lock two resources and two threads 
+have each acquired one of the locks, causing them to wait for each other forever. We must take care to avoid this(mitigation strategies for mutexes).
