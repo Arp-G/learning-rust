@@ -1300,6 +1300,26 @@ Additionally, we don’t have to write code that checks for behavior at runtime 
 Doing so improves performance without having to give up the flexibility of generics.
 
 
+Blanked trait implementations:
+------------------------------
+
+https://users.rust-lang.org/t/what-are-blanket-implementations/49904
+
+It is an implement of a trait either for all types, or for all types that match some condition. 
+
+For example, the stdandard library has this impl:
+
+It is a blanket impl that implements ToString for all types that implement the Display trait.
+(Rust adds the T: Sized bound to all generics by default. Adding ?Sized removes that bound, allowing non-sized types too.
+The Sized trait means we know something's size at compile time. If you ever want to store something as a 
+local variable the compiler needs to know how much space to set aside, and adding a ?Sized to your where clause relaxes that restriction.)
+
+```
+impl<T> ToString for T where
+    T: Display + ?Sized,
+{ ... }
+```
+
 * LIFETIMES IN RUST
 
 Most of the time, lifetimes are implicit and inferred by rust just like types but in certain cases we need to annotate lifetimes when the lifetimes of references could be related in a few different ways.
@@ -2819,3 +2839,109 @@ fn main() {
 ```
 
 Thus, the move keyword overrides Rust’s conservative default of borrowing; it doesn’t let us violate the ownership rules.
+
+== Message Passing using Channels ==
+
+A channel in rust has two halves: a transmitter and a receiver. 
+The transmitter half is the upstream location where we put the data in teh channel, and the receiver half will recieve the data from the channel.
+
+We create a new channel using the `mpsc::channel` function; mpsc stands for `multiple producer, single consumer`.
+
+*MPSC - Multi-producer, single-consumer FIFO queue communication primitives.*
+
+mpsc is the way Rust’s standard library implements channels, a channel can have multiple sending ends that produce values 
+but only one receiving end that consumes those values. 
+
+We call `mpsc::channel()` to create a channel a get a sender and receiver returned as a tuple like `(Sender<T>, Receiver<T>)`
+
+Example:
+
+```
+use std::sync::mpsc;
+use std::thread;
+
+fn main() {
+
+    // mpsc::channel function returns a tuple, the first element of which is the sending end and the second element is the receiving end. 
+    let (tx, rx) = mpsc::channel();
+
+    thread::spawn(move || {
+        let val = String::from("hi");
+        tx.send(val).unwrap(); // Here the transmitting end `tx` is "moved" in the closure
+    });
+
+    let received = rx.recv().unwrap();
+    println!("Got: {}", received);
+}
+```
+
+*A spawned thread needs to own the transmitting end of a channel to be able to send messages through the channel.*
+
+So, we use a closure that will capture the transmitting end, and use `move` to move ownership of the trsnamitting end to the thread.
+
+### Transmitting using send():-
+
+`tx.send(val)` returns a Result<T, E> type, so if the receiving end has already been dropped 
+and there’s nowhere to send a value, the send operation will return an error.
+
+### Receiving using recv and try_recv
+
+`recv()` blocks the threadand waits for the channel untill a message is recieved.
+`try_recv()` method doesn’t block, but will instead return a Result<T, E> immediately.
+
+Both `recv()` and `try_recv()` return a Result<T, E>. 
+
+`recv()` which returns Err if the sending end of the channel closes, recv will return an error to signal that no more values will be coming.
+`try_recv()` returns Err if Err value if there aren’t any messages this time.
+
+
+
+## Owenership transferenece and Multiple producers
+
+Ownership of a value iks lost when we send it down a channel from the transmitting end.
+
+If can have multiple senders/transmitters for a channel (but only one receiver), this can be achieved by using the 
+`mpsc::Sender::clone(&tx);` method.
+
+
+Example:
+
+```
+let (tx, rx) = mpsc::channel();
+
+// Creating a second sender for the channel using clone()
+let tx1 = mpsc::Sender::clone(&tx);
+
+thread::spawn(move || {
+
+    // Vector of integers
+    let vals = vec![1, 2, 3, 4, 5];
+
+    for val in vals {
+        tx1.send(val).unwrap();
+        thread::sleep(Duration::from_secs(1));
+    }
+
+    // ERROR on next line! As ownership of val was lost in `for val in vals` as `vals` moved due to this implicit call to `.into_iter()`
+    // println!("val is {:?}", vals);
+});
+
+thread::spawn(move || {
+    let vals = vec![6, 7, 8, 9, 10];
+
+    for val in vals {
+        tx.send(val).unwrap();
+        thread::sleep(Duration::from_secs(1));
+    }
+});
+
+// Here, we’re not calling the recv() or try_recv() function explicitly anymore: instead, 
+// we’re treating rx as an iterator, since we receive a vector of values.
+for received in rx {
+    println!("Got: {}", received);
+}
+
+```
+
+Note, here `for received in rx {...}` works and we can iterate over the `Receiver<T>` because it has a 
+blanked implementation of the `std::iter::IntoIterator` trait(having the next() method.
