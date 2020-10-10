@@ -302,6 +302,9 @@ Thus, When enum values have data inside them, you can use match or if let to ext
 
 ----------------------------------------------------------- PACKAGES, CRATES & MODULES -----------------------------------------------------------
 
+(Idea on how to import code from different modules: https://learning-rust.github.io/docs/d3.modules.html)
+
+(https://stackoverflow.com/questions/46829539/how-to-include-files-from-same-directory-in-a-module-using-cargo-rust)
 
 * A package is one or more crates that provide a set of functionality. A package contains a Cargo.toml file that describes how to build those   crates.
 
@@ -2894,6 +2897,9 @@ Both `recv()` and `try_recv()` return a Result<T, E>.
 `recv()` which returns Err if the sending end of the channel closes, recv will return an error to signal that no more values will be coming.
 `try_recv()` returns Err if Err value if there aren’t any messages this time.
 
+We can call `iter()` on the `Receiver<T>` which will return a iterator that will block when `next()` called, untill it receives 
+a new value from the channel.
+So doing `for i in receiver.iter()` will wait forever since, it will always call `next()` and keep blocking untill a new request is obtained.
 
 
 ## Owenership transferenece and Multiple producers
