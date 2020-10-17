@@ -3299,3 +3299,31 @@ fn print_coordinates(&(x, y): &(i32, i32)) {
 let point = (3, 5);
 print_coordinates(&point);
 ```
+
+##  Refutable vs Irrefutable pattern
+
+Patterns come in two forms: refutable and irrefutable. Patterns that will match for any possible value passed are irrefutable. 
+An example would be x in the statement let x = 5;
+
+Patterns that can fail to match for some possible value are refutable. An example would be Some(x) in the expression if let Some(x) = a_value because if the value in the a_value variable is None rather than Some, the Some(x) pattern will not match.
+
+let statements, and for loops can only accept irrefutable patterns, because the program cannot do anything meaningful when values don’t match.
+
+Eg: `let Some(x) = some_option_value; // Error wont compile,  refutable pattern in local binding: `None` not covered`
+
+`let` bindings require an "irrefutable pattern", like a `struct` or an `enum` with only one variant
+
+-----
+
+The if let and while let expressions accept refutable and irrefutable patterns.
+
+Eg: 
+
+```
+    if let Some(x) = some_option_value { // Works ! if let accept refutable and irrefutable patterns.
+        println!("{}", x);
+    }
+
+```
+
+For match statements, *Rust allows us to use an irrefutable pattern in a match with only one arm because*, match arms must use refutable patterns, except for the last arm, which should match any remaining values with an irrefutable pattern.
