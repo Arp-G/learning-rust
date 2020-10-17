@@ -3123,8 +3123,13 @@ This allows us to create things like collection of items of different types in a
 A generic type parameter can only be substituted with one concrete type at a time (done at *compile time*),
 whereas trait objects allow for multiple concrete types to fill in for the trait object at *runtime*.
 
-* We create a trait object by specifying some sort of pointer, such as a '&' reference or a Box<T> smart pointer, *
-* then the dyn keyword, and then specifying the relevant trait. *
+* *We create a trait object by specifying some sort of pointer, such as a '&' reference or a Box<T> smart pointer,*
+* *then the dyn keyword, and then specifying the relevant trait.*
+
+*THUS, A TRAIT OBJECT ALWAYS LOOKS LIKE `Box<dyn (Type that implements a Trait)>`*
+
+When defining a trait we can also define default implementations of methods, the types which implement the trait can then choose to override the
+default implementation if required.
 
 ```
 // In src/lib.rs
