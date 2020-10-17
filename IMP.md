@@ -3110,3 +3110,153 @@ The smart pointer Mutex<T> is Sync and can be used to share access with multiple
 As marker traits, they don’t even have any methods to implement. They’re just useful for enforcing invariants related to concurrency.
 Because types that are made up of Send and Sync traits are automatically also Send and Sync, we don’t have to implement those traits manually.
 Manually implementing these traits involves implementing unsafe Rust code.
+
+
+
+--------------------------------------------------------------------- TRAITS ---------------------------------------------------------------
+
+With traits we can implement concepts like inheritance, polymorphism and dynamic method dispatch in RUST.
+
+We can define a trait with method signatures and any type can now implement that trait and override that method, according to there needs.
+This allows us to create things like collection of items of different types in a single vectors/hash, etc.
+
+A generic type parameter can only be substituted with one concrete type at a time (done at *compile time*),
+whereas trait objects allow for multiple concrete types to fill in for the trait object at *runtime*.
+
+* We create a trait object by specifying some sort of pointer, such as a '&' reference or a Box<T> smart pointer, *
+* then the dyn keyword, and then specifying the relevant trait. *
+
+```
+// In src/lib.rs
+
+// Defining a trait
+pub trait Draw {
+    fn draw(&self);
+}
+
+
+pub struct Button {
+    pub width: u32,
+    pub height: u32,
+    pub label: String,
+}
+
+struct SelectBox {
+    width: u32,
+    height: u32,
+    options: Vec<String>,
+}
+
+// Implementing a trait
+impl Draw for Button {
+    fn draw(&self) {
+        // code to actually draw a button
+    }
+}
+
+// Implementing a trait
+impl Draw for SelectBox {
+    fn draw(&self) {
+        // code to actually draw a select box
+    }
+}
+
+// Now we can have a vector of items implementing Draw trait
+// These items do not have to be necessarily the same
+pub struct Screen {
+    pub components: Vec<Box<dyn Draw>>, // This is how we difine trait objects
+}
+
+// This run() method on the Sreen struct iterates over all the
+// `components: Vec<Box<dyn Draw>>` and calls their draw() method
+impl Screen {
+    pub fn run(&self) {
+        for component in self.components.iter() {
+            component.draw();
+        }
+    }
+}
+
+
+// So now we can do this...
+// in src/main.rs
+use gui::{Button, Screen};
+
+fn main() {
+    let screen = Screen {
+        // Here we have a vector of different items !
+        components: vec![
+            Box::new(SelectBox {
+                width: 75,
+                height: 10,
+                options: vec![
+                    String::from("Yes"),
+                    String::from("Maybe"),
+                    String::from("No"),
+                ],
+            }),
+            Box::new(Button {
+                width: 50,
+                height: 10,
+                label: String::from("OK"),
+            }),
+        ],
+    };
+
+    screen.run();
+}
+```
+
+## Dynamic Method dispatch, `dyn` keyword and its runtime implications:
+
+When we use trait bounds on generics, the compiler generates nongeneric implementations of functions 
+and methods for each concrete type that we use in place of a generic type parameter, this is called monomorphization.
+The code that results from monomorphization is doing static dispatch, which is when the compiler knows what method you’re calling at compile time.
+
+When we use trait objects, Rust must use dynamic dispatch. 
+The compiler doesn’t know all the types that might be used with the code that is using trait objects, 
+so it doesn’t know which method implemented on which type to call.
+
+`dyn` is a prefix of a trait object's type. (https://doc.rust-lang.org/std/keyword.dyn.html)
+The dyn keyword is used to highlight that calls to methods on the associated Trait are dynamically dispatched. 
+To use the trait this way, it must be 'object safe'.
+
+A dyn Trait reference contains two pointers. One pointer goes to the data (e.g., an instance of a struct). 
+Another pointer goes to a map of method call names to function pointers (known as a virtual method table or vtable).
+
+At run-time, when a method needs to be called on the dyn Trait, the vtable is consulted to get the function pointer and then that function pointer is called.
+The above indirection is the additional runtime cost of calling a function on a dyn Trait.
+Methods called by dynamic dispatch generally cannot be inlined by the compiler.
+
+## Object Safety
+
+You can only make object-safe traits into trait objects. This means if a trait is NOT object safe you cannot make objects implementing that trait.
+*A trait is object safe if all the methods defined in the trait have the following properties:*
+
+* The return type isn’t Self.
+* There are no generic type parameters.
+
+The *Self* (notice capital 'S') keyword is an alias for the type we’re implementing the traits or methods on.
+Trait objects must be object safe because once you’ve used a trait object, Rust no longer knows the concrete type that’s implementing that trait.
+
+So, if a trait method returns `Self`, rust does not know what is `Self` here because the trait object itself orgets the exact type that `Self` is.
+Similarly, if a trait method has generic type parameters it does not itself know, the concrete types that will become part of the type that implements the trait. 
+When the type is forgotten through the use of a trait object, there is no way to know what types to fill in the generic type parameters with.
+
+Example:
+
+The standard library’s clone method in the Clone trait looks like this...
+Here Clone trait is not object-safe.
+
+```
+pub trait Clone {
+    fn clone(&self) -> Self;
+}
+
+pub struct Screen {
+    pub components: Vec<Box<dyn Clone>> // ERROR ! the trait `std::clone::Clone` cannot be made into an object
+}
+```
+
+When we try to create trait objects of `Clone`, rust wont allow since the `clone` method of `Clone` is not object safe, since it returns `Self`.
+The signature of clone needs to know what type will stand in for `Self`, because that’s the return type.
