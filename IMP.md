@@ -3265,3 +3265,37 @@ pub struct Screen {
 
 When we try to create trait objects of `Clone`, rust wont allow since the `clone` method of `Clone` is not object safe, since it returns `Self`.
 The signature of clone needs to know what type will stand in for `Self`, because that’s the return type.
+
+--------------------------------------------------------------------- PATTERN MATCHING -----------------------------------------------------------------------
+
+Examples:
+
+```
+let mut stack = Vec::new();
+
+stack.push(1);
+stack.push(2);
+stack.push(3);
+
+while let Some(top) = stack.pop() {
+    println!("{}", top);
+}
+-----------------------------------
+let v = vec!['a', 'b', 'c'];
+
+for (index, value) in v.iter().enumerate() { // enumerate requires a table with indexes
+    println!("{} is at index {}", value, index);
+}
+-----------------------------------
+let (x, y, z) = (1, 2, 3);
+
+let (x, y) = (1, 2, 3); // Error !
+
+-----------------------------------
+fn print_coordinates(&(x, y): &(i32, i32)) {
+    println!("Current location: ({}, {})", x, y);
+}
+
+let point = (3, 5);
+print_coordinates(&point);
+```
