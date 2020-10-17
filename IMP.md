@@ -1968,11 +1968,11 @@ If we want to create an iterator that takes ownership of the data and returns ow
 
 Similarly, if we want to iterate over mutable references, we can call iter_mut instead of iter.
 
-* iter() iterates over the items by reference
+* iter() iterates over the items by reference. Will iterates over &T.
 
-* into_iter() iterates over the items, moving them into the new scope
+* into_iter() iterates over the items, moving them into the new scope. Will iterates over &mut T.
 
-* iter_mut() iterates over the items, giving a mutable reference to each item
+* iter_mut() iterates over the items, giving a mutable reference to each item. Will iterates over T.
 
 So for x in my_vec { ... } is essentially equivalent to my_vec.into_iter().for_each(|x| ... ) - both move the elements of my_vec into the ... scope.
 
