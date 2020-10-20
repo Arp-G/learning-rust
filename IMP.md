@@ -3327,3 +3327,144 @@ Eg:
 ```
 
 For match statements, *Rust allows us to use an irrefutable pattern in a match with only one arm because*, match arms must use refutable patterns, except for the last arm, which should match any remaining values with an irrefutable pattern.
+
+## Examples of different types of pattern matching in RUST:
+
+```
+let x = 1;
+
+match x {
+    1 | 2 => println!("one or two"),
+    _ => println!("anything"),
+}
+
+// --------------------------------
+
+// ..= syntax allows us to match to an inclusive range of values
+
+let x = 5;
+
+match x {
+    1..=5 => println!("one through five"), // If x is 1, 2, 3, 4, or 5
+    _ => println!("something else"),
+}
+
+// Ranges are only allowed with numeric values or char values, because the compiler checks that the range isn’t empty at compile time.
+
+// ------------NAMED VS UNAMED DESTRUCTURING-----------
+
+    let p = Point { x: 0, y: 7 };
+
+    let Point { x: a, y: b } = p; // named
+    let Point { x, y } = p;       // unamed
+
+    // In match...
+
+    match p {
+        Point { x, y: 0 } => println!("On the x axis at {}", x),
+        Point { x: 0, y } => println!("On the y axis at {}", y),
+        Point { x, y } => println!("On neither axis: ({}, {})", x, y),
+    }
+
+// -------------Destructuring Nested Structs and Enums-------------
+
+match msg {
+
+        // matches a Message::ChangeColor enum variant that contains a Color::Rgb variant; 
+        // then the pattern binds to the three inner i32 values.
+        Message::ChangeColor(Color::Rgb(r, g, b)) => println!(        
+            "Change the color to red {}, green {}, and blue {}",
+            r, g, b
+        ),
+        _ => (),
+    }
+
+// -------------Destructuring Structs and Tuples---------------
+
+let ((feet, inches), Point { x, y }) = ((3, 10), Point { x: 3, y: -10 });
+
+// ----------------- IGNORING VALUES -------------------
+
+fn foo(_: i32, y: i32) {
+    println!("This code only uses the y parameter: {}", y);
+}
+
+(first, _, third, _, fifth) = (2, 4, 8, 16, 32);
+
+let _x = 5;
+
+// ------------------
+
+// An unused variable starting with an underscore still binds the value, which might take ownership of the value
+// Using _ does not bind the value(ownership is not lost) but doing _x will bind the value, 
+// the value is not usable because of the prefix(_x) but its ownership is lost
+
+let s = Some(String::from("Hello!"));
+
+if let Some(_s) = s {          // Using _ instead of _s here would solve the error!
+    println!("found a string");
+}
+
+println!("{:?}", s); // ERROR ! borrow of moved value: `s`
+
+// --------------- Ignoring Remaining Parts of a Value with .. -------------------
+
+ let origin = Point { x: 0, y: 0, z: 0 };
+
+  match origin {
+    Point { x, .. } => println!("x is {}", x),
+  }
+
+  (x, .. , y) = (1,2,3,4); // Matching first and last value, this works !
+
+  // using .. must be unambiguous!
+  (.., second, ..) = (1,2,3,4); // ERROR! '..' can only be used once per tuple pattern
+```
+
+## Match Guards
+
+A match guard is an additional if condition specified after the pattern in a match arm that must also match, 
+along with the pattern matching, for that arm to be chosen.
+
+Example:
+
+```
+    let num = Some(4);
+
+    match num {
+        Some(x) if x < 5 => println!("less than five: {}", x),
+        Some(x) => println!("{}", x),
+        None => (),
+    }
+
+    // ----------
+
+    let x = 4;
+    let y = false;
+
+    match x {
+        4 | 5 | 6 if y => println!("yes"), // Here y = false
+        _ => println!("no"),
+    }
+```
+
+Using, match arms its also possible to avoid vraible shadowing when using varaibles with same names inside match arm
+Example: 
+`Some(n) if n == y` Here we accept n only if it matches the variable y from outer scope, here we ensured that the pattern matches only if the value wrapped by Some is same as `y` and also we don't introduce a new variable y that would shadow the outer y isnide the match arm
+
+## @Bindings
+
+The at operator (@) lets us create a variable that holds a value at the same time we’re testing that value to see whether it matches a pattern.
+Using @ lets us test a value and save it in a variable within one pattern.
+
+Example:
+
+```
+    match msg {
+
+        Message::Hello {
+            id: id_variable @ 3..=7, // This will test that id lies in range 3..=7 as well as store id inside id_varaible for use inside the match arm
+        } => println!("Found an id in range: {}", id_variable),
+    ....
+
+```
