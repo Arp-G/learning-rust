@@ -34,8 +34,8 @@ use the reference to it, rust will detect this at compile time.
 
 * Slices let you reference a contiguous sequence of elements in a collection rather than the whole collection.
 
-* A string literal is nothing but a slice (a pointer) to a binary stored in memory, 
-A slice type contains the starting memory location of the slice, and its length 
+* A string literal is nothing but a slice (a pointer) to a binary stored in memory,
+A slice type contains the starting memory location of the slice, and its length
 (This is another reason why a string literal is immutable since its a slice which is a immutable reference)
 
 ```
@@ -50,12 +50,12 @@ let s = "Hello, world!"; // The type of s here is &str (slice)
 ```
   fn main() {
     let mut s = String::from("Hello world !");
-    
+
     let sl = &s[1..2]; // Creates a immutable reference to s
-    
+
     let x = & mut s; // BUG ! Creates a mutable reference to s
-    
-    println!("{}", sl); // Without this print statement the code would compile since then the immutable reference "sl" would go out of scope since its never used 
+
+    println!("{}", sl); // Without this print statement the code would compile since then the immutable reference "sl" would go out of scope since its never used
 }
 ```
 
@@ -238,7 +238,7 @@ let absent_number: Option<i32> = None;
 
 If you have a need where a varaible might contain nothing/null at a perticular option you can use the Option<T> enum to wrap it.
 Doing so, elimintaes errors which occur due to null values.
-Bacause using Option<T> instead of T (where T can be any type), the compiler won’t let us use an Option<T> value as if it were DEFINITELY a valid value. 
+Bacause using Option<T> instead of T (where T can be any type), the compiler won’t let us use an Option<T> value as if it were DEFINITELY a valid value.
 
 Thus, Everywhere that a value has a type that isn’t an Option<T>, you can safely assume that the value isn’t null.
 
@@ -310,17 +310,17 @@ Thus, When enum values have data inside them, you can use match or if let to ext
 
 * There can be 2 types of crates, library crates and binary crates. You can have max one library crate but any number of binary crates in a package
 
-A binary crate is an executable project that has a main() method. A library crate is a group of components that can be reused in other projects. 
+A binary crate is an executable project that has a main() method. A library crate is a group of components that can be reused in other projects.
 Unlike a binary crate, a library crate does not have an entry point (main() method).
 
-The cargo install command allows you to install and use binary crates locally. 
-Note that you can only install packages that have binary targets. 
-A binary target is the runnable program that is created if the crate has a src/main.rs file or another file specified as a binary, 
-as opposed to a library target that isn’t runnable on its own but is suitable for including within other programs. 
+The cargo install command allows you to install and use binary crates locally.
+Note that you can only install packages that have binary targets.
+A binary target is the runnable program that is created if the crate has a src/main.rs file or another file specified as a binary,
+as opposed to a library target that isn’t runnable on its own but is suitable for including within other programs.
 
 All binaries installed with cargo install are stored in the installation root’s(path where RUST is installed) bin folder.
 
-* By deafult when we create a new package using `cargo new package-name`, Cargo follows a convention that src/main.rs is the crate root of a binary crate with the same name as the package. 
+* By deafult when we create a new package using `cargo new package-name`, Cargo follows a convention that src/main.rs is the crate root of a binary crate with the same name as the package.
 
 * Likewise, Cargo knows that if the package directory contains src/lib.rs, the package contains a library crate with the same name as the package, and src/lib.rs is its crate root.
 
@@ -383,7 +383,7 @@ pub fn eat_at_restaurant() {
     crate::front_of_house::hosting::add_to_waitlist();
 
     // Relative path
-    // The front_of_house module isn’t public, but because the eat_at_restaurant function is defined in the same module(the implicit crate module) as front_of_house 
+    // The front_of_house module isn’t public, but because the eat_at_restaurant function is defined in the same module(the implicit crate module) as front_of_house
     // (that is, eat_at_restaurant and front_of_house are siblings), we can refer to front_of_house from eat_at_restaurant.
     front_of_house::hosting::add_to_waitlist();
 }
@@ -434,13 +434,13 @@ meal.seasonal_fruit = String::from("blueberries"); // ERROR ! cannot access priv
 
 ```
 
-* Unlike structs where we need to mae the invidual properties of the struct public for enums 
+* Unlike structs where we need to mae the invidual properties of the struct public for enums
  if we declare and enum as public it means all of its variants are then public.
 
  ```
  mod back_of_house {
     pub enum Appetizer {
-        Soup,  // Here we don't need to explicitly declare `Soup` and `Salad` as public. 
+        Soup,  // Here we don't need to explicitly declare `Soup` and `Salad` as public.
         Salad, // Since `Appetizer` is public we can directly use `back_of_house::Appetizer::Soup`
     }
 }
@@ -467,8 +467,8 @@ use std::io::Result as IoResult; // import as to avoid name collisions
 /*
 Re-exporting Names with "pub use"
 
-When we bring a name into scope with the use keyword, the name available in the new scope is private. 
-To enable the code that calls our code to refer to that name as if it had been defined in that code’s scope, we can combine pub and use. 
+When we bring a name into scope with the use keyword, the name available in the new scope is private.
+To enable the code that calls our code to refer to that name as if it had been defined in that code’s scope, we can combine pub and use.
 */
 
 pub use crate::front_of_house::hosting;
@@ -496,10 +496,10 @@ use std::collections::*;
 
 * Keeping modules in separarte files...
 
-Using a semicolon after `mod filename;` rather than using a block tells Rust to load the contents of the 
+Using a semicolon after `mod filename;` rather than using a block tells Rust to load the contents of the
 file.
 
-Eg: 
+Eg:
 
 To include the code from hello.rs in your main.rs, use mod hello;. It gets expanded to the code that is in hello.rs.
 
@@ -539,11 +539,11 @@ match v.get(2) {
 }
 ------------------------------------------------------
 
-/* 
+/*
 You can't have a mutable reference to a vector item while inserting/deleting from the vector
-adding a new element onto the end of the vector might require allocating new memory and copying the old elements to the new space, 
-if there isn’t enough room to put all the elements next to each other where the vector currently is. 
-In that case, the reference to the first element would be pointing to deallocated memory. 
+adding a new element onto the end of the vector might require allocating new memory and copying the old elements to the new space,
+if there isn’t enough room to put all the elements next to each other where the vector currently is.
+In that case, the reference to the first element would be pointing to deallocated memory.
 The borrowing rules prevent programs from ending up in that situation.
 */
 
@@ -565,8 +565,8 @@ for i in &v {
 // Iterate over mutable references to each element in a mutable vector in order to make changes to all the elements.
 let mut v = vec![100, 32, 57];
 for i in &mut v {
-    *i += 50;      // To change the value that the mutable reference refers to, we 
-                   // have to use the dereference operator (*) to get to the value in i before we can use the += operator. 
+    *i += 50;      // To change the value that the mutable reference refers to, we
+                   // have to use the dereference operator (*) to get to the value in i before we can use the += operator.
 }
 
 // Update a value at index
@@ -608,7 +608,7 @@ let mut s = String::new();
 // to_string() works on anything that implements the Display trait.
 let s = "initial contents".to_string();
 
-// Also, we can do... 
+// Also, we can do...
 let s = String::from("initial contents"); // this has exactly same outcome as "initial contents".to_string()
 
 -------------------------------------
@@ -632,7 +632,7 @@ let s1 = String::from("Hello, ");
 let s2 = String::from("world!");
 let s3 = s1 + &s2;
 
-/* 
+/*
 
 The `+` operator uses the `fn add(self, s: &str) -> String` method.
 add() takes ownership of the first string, so in the example ownsership of `s1` is lost after `s1 + &s2`. But ownership for s2 is not lost since its borrowed.
@@ -685,7 +685,7 @@ let hello = "Здравствуйте";
 &hello[0..2]; // Reading first 2 bytes gives `З`
 &hello[2..4]; // Reading 2nd 2 bytes gives `д`
 &hello[4..5]; // thread 'main' panicked at 'byte index 5 is not a char boundary;
-    
+
 
 // Iterating on string...
 
@@ -697,7 +697,7 @@ for c in "नमस्ते".chars() {
     println!("{}", c);   // ['न', 'म', 'स', '्', 'त', 'े']
 }
 ```
-Getting grapheme clusters from strings is complex, so this functionality is not provided by the standard library. 
+Getting grapheme clusters from strings is complex, so this functionality is not provided by the standard library.
 Use this, to get this functionality: https://crates.io/crates/unicode-segmentation
 
 
@@ -745,7 +745,7 @@ Ownership:
 
 For datat types which implement the Copy trait like i32, values are copied into the hash map when inserting.
 
-*IMPORTANT:* 
+*IMPORTANT:*
 For owned values like String, the values will be moved and the hash map will be the owner of those values
 
 If we insert references to values into the hash map, the values won’t be moved into the hash map, however the values that the references point to must be valid for at least as long as the hash map is valid.
@@ -776,12 +776,12 @@ By default inserting a value for a key that already exists will overwrtie its va
 
 ENTRY:
 
-Hash maps have a special API for this called entry that takes the key you want to check as a parameter. The return value of the entry method is an enum called Entry that represents a value that might or might not exist. 
+Hash maps have a special API for this called entry that takes the key you want to check as a parameter. The return value of the entry method is an enum called Entry that represents a value that might or might not exist.
 
 Example...
 
 ```
-scores.entry(String::from("Yellow")).or_insert(50); 
+scores.entry(String::from("Yellow")).or_insert(50);
 ```
 
 `scores.entry` gives us a `Entry`, the `or_insert` method on Entry gives us a mutable reference for the corresponding value if the key exists or if there is no value then it inserts a value and then returns a mutable reference to it.
@@ -806,7 +806,7 @@ for word in text.split_whitespace() {
 * The panic! macro makes our code panic, When the panic! macro executes, your program will print a failure message, unwind and clean up the stack, and then quit.
 
   By default on panic our code will unwind which means Rust walks back up the stack and cleans up the data from each function it encounters, but this might be slow,
-  alternative is to immediately abort, which ends the program without cleaning up. 
+  alternative is to immediately abort, which ends the program without cleaning up.
   Memory that the program was using will then need to be cleaned up by the operating system.
 
   You can change the behaviour on panic, like in order to `abort` instead of unwinding in release mode, add a profile for release mode in 'Cargo.toml' file like..
@@ -832,7 +832,7 @@ We can see a complete backtrace when our code panics by running it like 'RUST_BA
 
 * Recovering from erros with Result<T, E>
 
-The Result enum has two values, Ok(T) or Err(E) here T represents the type of the value that will be returned in a success case within the Ok variant, 
+The Result enum has two values, Ok(T) or Err(E) here T represents the type of the value that will be returned in a success case within the Ok variant,
 and E represents the type of the error that will be returned in a failure case within the Err variant. Just like the Options enum the Result enum
 and its variants are automatically brought into scope and we can use them directly.
 
@@ -858,8 +858,8 @@ fn main() {
 
 // Create a File if it does not exists
 
-// io::Error struct provided by the standard library, has a kind() method that returns an io::ErrorKind value. 
-// The enum io::ErrorKind has variants representing the different kinds of errors that might result from an io operation. 
+// io::Error struct provided by the standard library, has a kind() method that returns an io::ErrorKind value.
+// The enum io::ErrorKind has variants representing the different kinds of errors that might result from an io operation.
 // The variant we want to use is ErrorKind::NotFound here...
 
 use std::fs::File;
@@ -891,7 +891,7 @@ use std::fs::File;
 fn main() {
 
     // Unwraps and returns T from Result::Ok<T> that is the file handle in this case otherwise in case of Err it calls panic! macro
-    let f = File::open("hello.txt").unwrap(); 
+    let f = File::open("hello.txt").unwrap();
 
     // OR
 
@@ -907,10 +907,10 @@ Instead of calling panic! or handling the Result::Err we can return it to the ca
 `Result<String, io::Error>` and we can have `Err(e) => return Err(e)` in case of error.
 
 
-* If the `?` operator is placed after a Result, and the value of the Result is an Ok, the value inside the Ok will get *returned from this expression*,and the program will continue. 
+* If the `?` operator is placed after a Result, and the value of the Result is an Ok, the value inside the Ok will get *returned from this expression*,and the program will continue.
 Otherwise the Err will be *returned from the whole function* as if we had used the return keyword so the error value gets propagated to the calling code.
 
-*For error case the ? operator returns the Result<E> from the function itself while for Result<v> it just returns V after evalutaing the expression it DOES NOT return from the function itself.* 
+*For error case the ? operator returns the Result<E> from the function itself while for Result<v> it just returns V after evalutaing the expression it DOES NOT return from the function itself.*
 
 Example...
 
@@ -942,7 +942,7 @@ Instead of directly returning a `Result::Err<E>` the `?` operator calls the `fro
 from() converts the error type received into the error type defined in the return type of the current function.
 
 his is useful when a function returns one error type to represent all the ways a function might fail.
-As long as each error type implements the from function to define how to convert itself to the returned error type, 
+As long as each error type implements the from function to define how to convert itself to the returned error type,
 the ? operator takes care of the conversion automatically.
 
 Finally the `?` operator can only be used in a function that returns Result or Option or another type that implements std::ops::Try.
@@ -1030,7 +1030,7 @@ impl<T> Point<T> {
 
 ```
 
-It is possible to implment a method only for a specific generic type of the struct like, this method is only available for 'Point<f32>' structs 
+It is possible to implment a method only for a specific generic type of the struct like, this method is only available for 'Point<f32>' structs
 
 ```
 impl Point<f32> {
@@ -1070,7 +1070,7 @@ let p3 = p1.mixup(p2); // Point { x: 5, y: 'c' };
 
 Rust uses a technique called 'Monomorphization' which replaces all generics with concrete types at compile time and therefore there is absolutely NO COST at runtime.
 
-Eg: 
+Eg:
 
 If we create 2 Option<T> types like 'Some(5);' and 'Some(5.0);'
 
@@ -1136,8 +1136,8 @@ Eg: We can't implement the external DIsplay trait on the external Vec<T> type.
 
 Reason:
 
-This restriction is part of a property of programs called coherence, and more specifically the orphan rule, 
-so named because the parent type is not present. This rule ensures that other people’s code can’t break your code and vice versa. 
+This restriction is part of a property of programs called coherence, and more specifically the orphan rule,
+so named because the parent type is not present. This rule ensures that other people’s code can’t break your code and vice versa.
 Without the rule, two crates could implement the same trait for the same type, and Rust wouldn’t know which implementation to use.
 
 
@@ -1228,11 +1228,11 @@ We can also use the impl Trait syntax in the return position to return a value o
 fn returns_summarizable() -> impl Summary { ... }
 ```
 
-WARNING: When specifying the return type of a function implements a specific trait 
-it DOES NOT mean you can conditionally return DIFFERENT TYPEs at just beacuse those 
-types implement the trait. 
+WARNING: When specifying the return type of a function implements a specific trait
+it DOES NOT mean you can conditionally return DIFFERENT TYPEs at just beacuse those
+types implement the trait.
 
-Your function can only return a specific type but specifying the return type as a 
+Your function can only return a specific type but specifying the return type as a
 trait only means that the retuned type must implement the trait.
 
 So, this is INVALD ! Gives error like: '`if` and `else` have incompatible types'
@@ -1246,7 +1246,7 @@ fn returns_summarizable(switch: bool) -> impl Summary {
     }
 }
 ```
-The above code wont compile, since it conditionally returns either a 'NewsArticle' or a 'Tweet' 
+The above code wont compile, since it conditionally returns either a 'NewsArticle' or a 'Tweet'
 although both of them implement the 'SUmmary' trait.
 While you can accept different types T you can only return a perticular type at all circumstances from the function.
 
@@ -1278,7 +1278,7 @@ impl<T: Display + PartialOrd> Pair<T> {
 
 Also, we can conditionally implement a trait for any type that implements another trait, this is called 'blanket'.
 
-For example, the standard library implements the ToString trait on any type that implements the Display trait. 
+For example, the standard library implements the ToString trait on any type that implements the Display trait.
 The impl block in the standard library looks similar to this code:
 
 ```
@@ -1287,8 +1287,8 @@ impl<T: Display> ToString for T { // Implement the 'ToString' function for any T
 }
 ```
 
-Because the standard library has this blanket implementation, we can call the to_string method defined by the ToString trait on 
-any type that implements the Display trait. 
+Because the standard library has this blanket implementation, we can call the to_string method defined by the ToString trait on
+any type that implements the Display trait.
 
 For example, `let s = 3.to_string();`
 
@@ -1296,10 +1296,10 @@ For example, `let s = 3.to_string();`
 
 Advantage over other languages:
 -------------------------------
-In dynamically typed languages, we would get an error at runtime if we called a method on a type which didn’t define the method. 
+In dynamically typed languages, we would get an error at runtime if we called a method on a type which didn’t define the method.
 
-But Rust moves these errors to compile time so we’re forced to fix the problems before our code is even able to run. 
-Additionally, we don’t have to write code that checks for behavior at runtime because we’ve already checked at compile time. 
+But Rust moves these errors to compile time so we’re forced to fix the problems before our code is even able to run.
+Additionally, we don’t have to write code that checks for behavior at runtime because we’ve already checked at compile time.
 Doing so improves performance without having to give up the flexibility of generics.
 
 
@@ -1308,13 +1308,13 @@ Blanked trait implementations:
 
 https://users.rust-lang.org/t/what-are-blanket-implementations/49904
 
-It is an implement of a trait either for all types, or for all types that match some condition. 
+It is an implement of a trait either for all types, or for all types that match some condition.
 
 For example, the stdandard library has this impl:
 
 It is a blanket impl that implements ToString for all types that implement the Display trait.
 (Rust adds the T: Sized bound to all generics by default. Adding ?Sized removes that bound, allowing non-sized types too.
-The Sized trait means we know something's size at compile time. If you ever want to store something as a 
+The Sized trait means we know something's size at compile time. If you ever want to store something as a
 local variable the compiler needs to know how much space to set aside, and adding a ?Sized to your where clause relaxes that restriction.)
 
 ```
@@ -1330,7 +1330,7 @@ Most of the time, lifetimes are implicit and inferred by rust just like types bu
 
 Borrow Checker:
 
-The Rust compiler has a borrow checker that compares scopes to determine whether all borrows are valid. 
+The Rust compiler has a borrow checker that compares scopes to determine whether all borrows are valid.
 
 This code is invalid and gives error: `x` does not live long enough
 ```
@@ -1399,14 +1399,14 @@ struct ImportantExcerpt<'a> {
 ```
 
 
-The compiler uses three rules to figure out what lifetimes references have when there aren’t explicit annotations. 
+The compiler uses three rules to figure out what lifetimes references have when there aren’t explicit annotations.
 
-1) The first rule is that each parameter that is a reference gets its own lifetime parameter. 
+1) The first rule is that each parameter that is a reference gets its own lifetime parameter.
 
 In other words, a function with one parameter gets one lifetime parameter: `fn foo<'a>(x: &'a i32);`
  a function with two parameters gets two separate lifetime parameters: `fn foo<'a, 'b>(x: &'a i32, y: &'b i32);` and so on.
 
-2) The second rule is if there is exactly one input lifetime parameter, 
+2) The second rule is if there is exactly one input lifetime parameter,
 that lifetime is assigned to all output lifetime parameters: `fn foo<'a>(x: &'a i32) -> &'a i32.`
 
 3) The third rule is if there are multiple input lifetime parameters, but one of them is &self or &mut self because this is a method, the lifetime of self is assigned to all output lifetime parameters.
@@ -1436,7 +1436,7 @@ here after rule 1 is applied: `fn longest<'a, 'b>(x: &'a str, y: &'b str) -> &st
 
 rule 2 does not work as there are 2 arguments, rule 3 does not apply as this is a function NOT a method so none of its arguments are `self`
 
-So, After working through all three rules, we still haven’t figured out what the return type’s lifetime is. 
+So, After working through all three rules, we still haven’t figured out what the return type’s lifetime is.
 Compiler gives error, and asks for explicit annotations!
 ---
 
@@ -1496,7 +1496,7 @@ We run tests using the cargo test command.
 * Rust builds a test runner binary that runs the functions annotated with the test attribute and reports on whether each test function passes or fails. *
 * Each test is run in a new thread, and when the main thread sees that a test thread has died, the test is marked as failed. *
 
-If you are not using a separate module for tests then you don't need to use `#[cfg(test)]`. 
+If you are not using a separate module for tests then you don't need to use `#[cfg(test)]`.
 Functions marked with #[test] are already excluded from non-test builds. This can be verified very easily:
 
 ```
@@ -1517,7 +1517,7 @@ If the value is false, the assert! macro calls the panic! macro.
 We can use `assert!`, `assert_eq!` and `assert_ne!` in tests to write assertions.
 
 The tests module is a regular module that follows the usual visibility rules.
-Because the tests module is an inner module, we need to bring the code under test in the outer module into the scope of the inner module. 
+Because the tests module is an inner module, we need to bring the code under test in the outer module into the scope of the inner module.
 We use `use super::*;` inside the test module so anything we define in the outer module is available to this tests module.
 
 
@@ -1575,11 +1575,11 @@ fn main() {}
 
 
 When the assertions fail, the `assert..` macros print their arguments using debug formatting,
-which means the values being compared must implement the `PartialEq` and `Debug` traits. 
-All the primitive types and most of the standard library types implement these traits. 
-For structs and enums that you define, you’ll need to implement `PartialEq` to assert that values of those types are equal or not equal. 
- 
-You’ll need to implement Debug to print the values when the assertion fails. 
+which means the values being compared must implement the `PartialEq` and `Debug` traits.
+All the primitive types and most of the standard library types implement these traits.
+For structs and enums that you define, you’ll need to implement `PartialEq` to assert that values of those types are equal or not equal.
+
+You’ll need to implement Debug to print the values when the assertion fails.
 
 Because both traits are derivable traits, this is usually as straightforward as adding the `#[derive(PartialEq, Debug)]` annotation to your struct or enum definition.
 
@@ -1589,7 +1589,7 @@ Because both traits are derivable traits, this is usually as straightforward as 
 Add a custom message to be printed with the failure message as optional arguments to the assert!, assert_eq!, and assert_ne! macros.
 This messages are passed to panic! when a test fails.
 
-This messages are passed along to the format! macro, so you can pass a format string that contains {} placeholders and values to go in those placeholders. 
+This messages are passed along to the format! macro, so you can pass a format string that contains {} placeholders and values to go in those placeholders.
 
 Example:
 
@@ -1630,16 +1630,16 @@ fn greater_than_100() {
 
 * Using Result<T, E> in Tests
 
-If a test function has a return type of Result<T, E> it means 
+If a test function has a return type of Result<T, E> it means
 we return `Ok` when the test passes and an `Err` when the test fails.
 
 This enables us to use the question mark operator, which can be a convenient way to write tests that should fail if any operation within them returns an Err variant.
 
 (If the `?` operator is placed after a Result, and the value of the Result is an Ok, the value inside the Ok will get returned from this expression,
-and the program will continue. Otherwise the Err will be returned from the whole function as if we had used the return keyword so the error value 
+and the program will continue. Otherwise the Err will be returned from the whole function as if we had used the return keyword so the error value
 gets propagated to the calling code.)
 
-We can’t use the `#[should_panic]` annotation on tests that use `Result<T, E>`, 
+We can’t use the `#[should_panic]` annotation on tests that use `Result<T, E>`,
 instead we must return `Err` value directly when the test should fail.
 
 Example:
@@ -1659,7 +1659,7 @@ mod tests {
 
 * Controlling Test runs
 
-Just as cargo run compiles your code and then runs the resulting binary, cargo test compiles your code in test mode and runs the resulting test binary. 
+Just as cargo run compiles your code and then runs the resulting binary, cargo test compiles your code in test mode and runs the resulting test binary.
 
 Some command line options go to cargo test, and some go to the resulting test binary.
 
@@ -1693,12 +1693,12 @@ Run all tests in a specific file(tests/integration_test.rs): `cargo test --test 
 
 = Unit tests =
 
-You’ll put unit tests in the src directory in each file with the code that they’re testing. 
+You’ll put unit tests in the src directory in each file with the code that they’re testing.
 The convention is to create a module named tests in each file to contain the test functions and to annotate the module with cfg(test).
 
 What is [cfg(test)]?
 
-The #[cfg(test)] annotation on the tests module tells Rust to compile and run the test code only when you run cargo test, not when you run cargo build. 
+The #[cfg(test)] annotation on the tests module tells Rust to compile and run the test code only when you run cargo test, not when you run cargo build.
 This saves compile time when you only want to build the library and saves space in the resulting compiled artifact because the tests are not included.
 
 By using the cfg attribute, Cargo compiles our test code only if we actively run the tests with cargo test.
@@ -1720,9 +1720,9 @@ mod tests {
 fn main() {}
 ```
 
-Testing private functions: 
+Testing private functions:
 
-Because tests are just Rust code and the tests module is just another module, you can bring private functions into a test’s scope and call it. 
+Because tests are just Rust code and the tests module is just another module, you can bring private functions into a test’s scope and call it.
 
 Eg:
 
@@ -1763,7 +1763,7 @@ fn it_adds_two() {
 
 So we need to bring the code we want to test in the crate's scope by `use adder;` this was not required for unit tests.
 
-We don’t need to annotate any code in tests/integration_test.rs with #[cfg(test)]. 
+We don’t need to annotate any code in tests/integration_test.rs with #[cfg(test)].
 Cargo treats the tests directory specially and compiles files in this directory only when we run cargo test
 
 
@@ -1771,10 +1771,10 @@ Cargo treats the tests directory specially and compiles files in this directory 
 
 We might have some helper functions which many of our integration tests use, this helper function are not tests by themself but rust does not know that.
 
-To avoid having helper files appear in the test output, instead of creating tests/common.rs, we’ll create tests/common/mod.rs. 
-This is an alternate naming convention that Rust also understands. 
+To avoid having helper files appear in the test output, instead of creating tests/common.rs, we’ll create tests/common/mod.rs.
+This is an alternate naming convention that Rust also understands.
 
-Naming the file this way tells Rust NOT to treat the common module as an integration test file. 
+Naming the file this way tells Rust NOT to treat the common module as an integration test file.
 
 *Files in subdirectories of the tests directory don’t get compiled as separate crates or have sections in the test output.*
 
@@ -1798,9 +1798,9 @@ fn it_adds_two() {
 
 * Integration tests are NOT available for binary crates
 
-Lastly, for binary crates that only contains a src/main.rs file and doesn’t have a src/lib.rs file. 
-In this case, we can’t create integration tests in the tests directory and bring functions defined in the src/main.rs 
-file into scope with a use statement beacuse 
+Lastly, for binary crates that only contains a src/main.rs file and doesn’t have a src/lib.rs file.
+In this case, we can’t create integration tests in the tests directory and bring functions defined in the src/main.rs
+file into scope with a use statement beacuse
 *only library crates expose functions that other crates can use; binary crates are meant to be run on their own.*
 
 To use integration tests for binary crates, We have to have a straightforward src/main.rs file that calls logic that lives in the src/lib.rs file.
@@ -1809,9 +1809,9 @@ Using that structure, integration tests can test the library crate with use to m
 
 ----------------------------------------------------------- CLOSURES IN RUST -----------------------------------------------------------
 
-Rust’s closures are anonymous functions you can save in a variable or pass as arguments to other functions. 
-You can create the closure in one place and then call the closure to evaluate it in a different context. 
-Unlike functions, closures can capture values from the scope in which they’re defined. 
+Rust’s closures are anonymous functions you can save in a variable or pass as arguments to other functions.
+You can create the closure in one place and then call the closure to evaluate it in a different context.
+Unlike functions, closures can capture values from the scope in which they’re defined.
 
 Examples:
 
@@ -1826,13 +1826,13 @@ Closures can capture values from their environment in three ways:-
 
 1) Taking ownership 2) Borrowing mutably 3) Borrowing immutably
 
-The Fn traits are provided by the standard library. All closures implement at least one of the traits: 
+The Fn traits are provided by the standard library. All closures implement at least one of the traits:
 
 * Fn -> Fn borrows values from the environment immutably.
 
 * FnMut -> FnMut can change the environment because it mutably borrows values.
 
-* FnOnce ->  Consumes/takes ownership of varaibles in the closure’s environment. The Once part of the name represents the fact that the closure 
+* FnOnce ->  Consumes/takes ownership of varaibles in the closure’s environment. The Once part of the name represents the fact that the closure
              can’t take ownership of the same variables more than once, so it can be called only once.
 
 
@@ -1851,17 +1851,17 @@ fn main() {
 
     let y = vec![1, 2, 3];
 
-    assert!(equal_to_x(y)); 
+    assert!(equal_to_x(y));
 }
 ```
 
 Closure Type annotations:
 
-Closures are usually short and relevant only within a narrow context unlike functions. 
+Closures are usually short and relevant only within a narrow context unlike functions.
 The compiler is reliably able to infer the types of the parameters and the return type.
 
 But for the compiler to automatically infer the closures types we must call it from somewhere otherwise explicity specify type annotaions.
-The first time we call the closure with some value, the compiler infers the types and those types are then locked in to the closure 
+The first time we call the closure with some value, the compiler infers the types and those types are then locked in to the closure
 now we will a type error if we try to use a different type with the same closure.
 
 Example:
@@ -1869,7 +1869,7 @@ Example:
 fn main() {
     let example_closure = |x| x;
     let s = example_closure(String::from("hello"));
-    let n = example_closure(5); // ERROR ! since the compiler has previously infered that the closure takes a String 
+    let n = example_closure(5); // ERROR ! since the compiler has previously infered that the closure takes a String
 }
 ```
 
@@ -1878,7 +1878,7 @@ fn main() {
 
 The iterator pattern allows you to perform some task on a sequence of items in turn.
 
-In Rust, iterators are *lazy*, meaning they have no effect until you call methods that consume the iterator to use it up. 
+In Rust, iterators are *lazy*, meaning they have no effect until you call methods that consume the iterator to use it up.
 
 ```
     let v1 = vec![1, 2, 3];
@@ -1912,7 +1912,7 @@ In case of the for-loop, the loop took ownership of v1_iter and made it mutable 
 
  There are 2 types of methods on iterators...
 
- 1) CONSUMING adaptors: Methods that call next, these must takes ownership of the iterator and iterates through the items 
+ 1) CONSUMING adaptors: Methods that call next, these must takes ownership of the iterator and iterates through the items
     by repeatedly calling next, thus consuming the iterator.
 
     Example:
@@ -1924,12 +1924,12 @@ In case of the for-loop, the loop took ownership of v1_iter and made it mutable 
 
         let total: i32 = v1_iter.sum(); // sum() is a consuming adapter
 
-        
+
         v1_iter.next() // INVALID ! because ownership of "v1_iter" was lost to "sum()"
 
     ```
 
-2) ITERATOR adaptors: These take a iterator and return a new iterator, we can chain multiple calls to iterator adaptors to perform complex actions in a readable way. 
+2) ITERATOR adaptors: These take a iterator and return a new iterator, we can chain multiple calls to iterator adaptors to perform complex actions in a readable way.
 
    *But because all iterators are lazy, you have to call one of the consuming adaptor methods to get results from calls to iterator adaptors.*
 
@@ -1938,7 +1938,7 @@ In case of the for-loop, the loop took ownership of v1_iter and made it mutable 
     ```
     let v1: Vec<i32> = vec![1, 2, 3];
 
-    let v2: Vec<_> = v1.iter().map(|x| x + 1).collect(); // Here collect is a consuming adapter that consumed the iterator given by map() 
+    let v2: Vec<_> = v1.iter().map(|x| x + 1).collect(); // Here collect is a consuming adapter that consumed the iterator given by map()
 
     assert_eq!(v2, vec![2, 3, 4]);
 
@@ -1950,7 +1950,7 @@ In case of the for-loop, the loop took ownership of v1_iter and made it mutable 
     ```
     let a = [1, 2, 3];
 
-    let doubled: Vec<i32> = a.iter() .map(|&x| x * 2).collect(); 
+    let doubled: Vec<i32> = a.iter() .map(|&x| x * 2).collect();
     // Here type is infered from "doubled: Vec<i32>", without this code wont work since type cannot be infered
 
     let doubled = a.iter().map(|x| x * 2).collect::<Vec<i32>>(); // Using the 'turbofish' on "collect" instead of annotating doubled
@@ -1962,9 +1962,9 @@ In case of the for-loop, the loop took ownership of v1_iter and made it mutable 
 TYPES OF ITERATORS:
 (https://stackoverflow.com/questions/34733811/what-is-the-difference-between-iter-and-into-iter)
 
-The iter method produces an iterator over immutable references. 
+The iter method produces an iterator over immutable references.
 
-If we want to create an iterator that takes ownership of the data and returns owned values, we can call into_iter instead of iter. 
+If we want to create an iterator that takes ownership of the data and returns owned values, we can call into_iter instead of iter.
 
 Similarly, if we want to iterate over mutable references, we can call iter_mut instead of iter.
 
@@ -2010,7 +2010,7 @@ fn main() {
 
 All iterators implement a trait named Iterator that is defined in the standard library.
 
-You must have a associated type "Item" and a "next()" function when implementing the iterator. 
+You must have a associated type "Item" and a "next()" function when implementing the iterator.
 The next function must returns a `Option<Self::Item>` here "item" is the associated type you defined.
 
 Once a type implements the "Iterator" trait all library methods like map(), zip(), etc are avilable on that type.
@@ -2050,7 +2050,7 @@ impl Iterator for Counter {  // Implement "Iterator" for "Counter"
 fn using_other_iterator_trait_methods() {
 
     let sum: u32 = Counter::new()    // take the values produced by an instance of Counter
-        .zip(Counter::new().skip(1)) // pair them with values produced by another Counter instance after skipping the first value 
+        .zip(Counter::new().skip(1)) // pair them with values produced by another Counter instance after skipping the first value
                                         (zip produces only four pairs; the theoretical fifth pair (5, None) is never produced because zip returns None when either of its input iterators return None)
 
         .map(|(a, b)| a * b)         // multiply each pair together
@@ -2065,7 +2065,7 @@ fn main() {}
 
 Iterators, although a high-level abstraction, get compiled down to roughly the same code as if you’d written the lower-level code yourself using loops.
 
-Iterators are one of Rust’s zero-cost abstractions, by which we mean using the abstraction imposes no additional runtime overhead. 
+Iterators are one of Rust’s zero-cost abstractions, by which we mean using the abstraction imposes no additional runtime overhead.
 
 Closures and iterators are Rust features inspired by functional programming language ideas. They contribute to Rust’s capability to clearly express high-level ideas at low-level performance. The implementations of closures and iterators are such that runtime performance is not affected. This is part of Rust’s goal to strive to provide zero-cost abstractions.
 
@@ -2074,17 +2074,17 @@ Closures and iterators are Rust features inspired by functional programming lang
 
 Unlike general `&` references used to borrow values, smart pointers have additional capabilities.
 
-Smart pointers, are data structures that not only act like a pointer but also have additional metadata and capabilities. The difference between references 
+Smart pointers, are data structures that not only act like a pointer but also have additional metadata and capabilities. The difference between references
 and smart pointers is that references are pointers that only borrow data; in contrast, in many cases, smart pointers own the data they point to.
 
 Some examples of smart pointers are String and Vec<T>. They own some memory and allow you to manipulate it. They also have metadata (such as their capacity) and extra capabilities or guarantees (such as with String ensuring its data will always be valid UTF-8).
 
-Smart pointers are usually implemented using structs. 
-The characteristic that distinguishes a smart pointer from an ordinary struct is that smart pointers implement the Deref and Drop traits. 
+Smart pointers are usually implemented using structs.
+The characteristic that distinguishes a smart pointer from an ordinary struct is that smart pointers implement the Deref and Drop traits.
 
-* The Deref trait allows an instance of the smart pointer struct to behave like a reference so you can write code that works with either references or smart pointers. 
+* The Deref trait allows an instance of the smart pointer struct to behave like a reference so you can write code that works with either references or smart pointers.
 
-* The Drop trait allows you to customize the code that is run when an instance of the smart pointer goes out of scope. 
+* The Drop trait allows you to customize the code that is run when an instance of the smart pointer goes out of scope.
 
 
 == Using Box<T> to Point to Data on the Heap ==
@@ -2103,7 +2103,7 @@ Boxes are used in situations like...
 
     transferring ownership of a large amount of data can take a long time because the data is copied around on the stack. To improve performance in this situation, we can store the large amount of data on the heap in a box. Then, only the small amount of pointer data is copied around on the stack, while the data it references stays in one place on the heap.
 
-2) When you want to own a value and you care only that it’s a type that implements a particular trait rather than being of a specific type 
+2) When you want to own a value and you care only that it’s a type that implements a particular trait rather than being of a specific type
     - This deals with the trait object
 
 3) When you have a type whose size can’t be known at compile time and you want to use a value of that type in a context that requires an exact size
@@ -2117,7 +2117,7 @@ Like in elixir: `[1 | [2 | [3 | [] ] ] ] # [1, 2, 3]`
 Rust impllementation of Cons list
 
 ```
-// The enum has two values List::Cons and List::Nil 
+// The enum has two values List::Cons and List::Nil
 enum List {
     Cons(i32, List), // The first value is a i32 and second is a `List` which is another instance of our `List` enum
     Nil,
@@ -2165,8 +2165,8 @@ fn main() {
 The Cons variant will need the size of an i32 plus the space to store the box’s pointer data.
 By using a box, we’ve broken the infinite, recursive chain, so the compiler can figure out the size it needs to store a List value.
 
-Because a Box<T> is a pointer, Rust always knows how much space a Box<T> needs: a pointer’s size doesn’t change based on the amount of data it’s pointing to. 
-This means we can put a Box<T> inside the Cons variant instead of another List value directly. 
+Because a Box<T> is a pointer, Rust always knows how much space a Box<T> needs: a pointer’s size doesn’t change based on the amount of data it’s pointing to.
+This means we can put a Box<T> inside the Cons variant instead of another List value directly.
 The Box<T> will point to the next List value that will be on the heap rather than inside the Cons variant.
 
 Boxes provide only the indirection and heap allocation; they don’t have any other special capabilities, like those we’ll see with the other smart pointer types. They also don’t have any performance overhead that these special capabilities incur, so they can be useful in cases like the cons list where the indirection is the only feature we need.
@@ -2211,7 +2211,7 @@ fn main() {
     assert_eq!(5, x);
     assert_eq!(5, *y);
     assert_eq!(5, *z); // Possible beacuse Box implements deref trait
-    
+
     assert_eq!(5, *a); // Possible since MyBox implements deref trait, *a -> *(a.deref()) -> *(&self.0) -> self -> 5
 }
 ```
@@ -2235,7 +2235,7 @@ When the Deref trait is defined for the types involved, Rust will analyze the ty
 
 Examples:
 
-deref coercion can convert &String to &str because String implements the Deref trait such that it returns str. 
+deref coercion can convert &String to &str because String implements the Deref trait such that it returns str.
 
 ```
 // Defination of MyBox that implements deref from previous example
@@ -2270,7 +2270,7 @@ Explaination: (This is what deref automatically does for us here):
 
 Similar to how you use the Deref trait to override the * operator on immutable references, you can use the DerefMut trait to override the * operator on mutable references.
 
-That is if you have a mutable type T that implements `T: DerefMut<Target=U>` so on call to deref we get a `&mut U` 
+That is if you have a mutable type T that implements `T: DerefMut<Target=U>` so on call to deref we get a `&mut U`
 
 so `*(mut T) -> *(mut T.deref()) -> *(&mut U) -> U`
 
@@ -2285,7 +2285,7 @@ The Drop trait is included in the prelude, so we don’t need to bring it into s
 The body of the drop function is where you would place any logic that you wanted to run when an instance of your type goes out of scope, the memory will
 automatically get cleared by rust but the drop method allows you to do additional tasks like release resources like files or network connections, etc.
 
-The drop method will be called automatically when a value goes out of scope, it is **NOT** possible for you to call the Drop trait’s drop method manually 
+The drop method will be called automatically when a value goes out of scope, it is **NOT** possible for you to call the Drop trait’s drop method manually
 beacause Rust would still automatically call drop on the value at the end of its scope. This would be a double free error !
 
 However you can force clean up early by calling `std::mem::drop` method and passing the value we want to force to be dropped early as an argument.
@@ -2310,12 +2310,12 @@ fn main() {
     let c = CustomSmartPointer {
         data: String::from("some data"),
     };
-   
+
     // c.drop(); This wont work cant call drop method of drop trait directly, will give error: "explicit destructor calls not allowed"
-     
+
     // Called std::mem::drop to force drop value, "Dropping CustomSmartPointer with data `some data`!" is printed !
     // If this was not called Rust would call drop() method from Drop trait automatically after the main() method ends
-    drop(c); 
+    drop(c);
 }
 
 ```
@@ -2329,7 +2329,7 @@ https://doc.rust-lang.org/std/rc/
 
 Usually we can have only one owner to a value however there might be instances where we require a value to be owned by multiple owners.
 
-Rc<T> or reference counting provides shared ownership of a value of type T, allocated in the heap and keeps track of the number of references to a value which determines whether or not a value is still in use. 
+Rc<T> or reference counting provides shared ownership of a value of type T, allocated in the heap and keeps track of the number of references to a value which determines whether or not a value is still in use.
 
 If there are zero references to a value, the value can be cleaned up without any references becoming invalid.
 
@@ -2341,7 +2341,7 @@ Think of cons list which is a part of two other cons list like:
 a = 5 -> 10 -> nil
 
 b = 3 -> a
-      
+
 c = 4-> b
 ```
 
@@ -2365,7 +2365,7 @@ fn main() {
 ```
 
 We could change the definition of Cons to hold references instead to avoid passing ownership, but then we would have to specify lifetime parameters.
-But this would create other problems like: 
+But this would create other problems like:
 
 By specifying lifetime parameters, we would be specifying that every element in the list will live at least as long as the entire list.
 Also, `let a = Cons(10, &Nil);` is invalid now since temporary `Nil` value would be dropped before a could take a reference to it.
@@ -2392,7 +2392,7 @@ fn main() {
     // Calling Rc::clone() creates a new owner of 'a' and increases ownership count by 1
     // Calling a.clone() would also work here but would produce a deep copy of all the data BUT calling Rc::clone(&a) only increases reference count
 
-    let b = Cons(3, Rc::clone(&a)); 
+    let b = Cons(3, Rc::clone(&a));
     let c = Cons(4, Rc::clone(&a));
 
     println!("Reference count of a = {}", Rc::strong_count(&a)); // 3 (Because 'a' has 3 owners 'a', 'b' and 'c')
@@ -2402,11 +2402,11 @@ fn main() {
 
 IMPORTANT NOTES:
 
-1) Reference count of an Rc increases by 1 whenever an Rc is cloned and produces a new pointer to the same allocation in the heap, 
-Also, reference count is decreases by 1 whenever one cloned Rc is dropped out of the scope. When an Rc's reference count becomes zero, 
+1) Reference count of an Rc increases by 1 whenever an Rc is cloned and produces a new pointer to the same allocation in the heap,
+Also, reference count is decreases by 1 whenever one cloned Rc is dropped out of the scope. When an Rc's reference count becomes zero,
 which means there are no owners remained, both the Rc and the value are all dropped.
 
-2) Invoking clone on Rc produces a new pointer to the same allocation in the heap. When the last Rc pointer to a given allocation is destroyed, 
+2) Invoking clone on Rc produces a new pointer to the same allocation in the heap. When the last Rc pointer to a given allocation is destroyed,
 the value stored in that allocation (often referred to as "inner value") is also dropped.
 
 3) Cloning an Rc never performs a deep copy. Cloning creates just another pointer to the wrapped value, and increments the count.
@@ -2422,11 +2422,11 @@ the value stored in that allocation (often referred to as "inner value") is also
 
 Shared references in Rust disallow mutation by default, and Rc is no exception: you cannot generally obtain a mutable reference to something inside an Rc. If you need mutability, put a Cell or RefCell inside the Rc.
 
-Interior mutability is a design pattern in Rust that *allows you to mutate data even when there are immutable references to that data*; normally, this action is disallowed by the borrowing rules. 
+Interior mutability is a design pattern in Rust that *allows you to mutate data even when there are immutable references to that data*; normally, this action is disallowed by the borrowing rules.
 
 NOTES:
 
-* Unlike Rc<T>, the RefCell<T> type represents single ownership over the data it holds. 
+* Unlike Rc<T>, the RefCell<T> type represents single ownership over the data it holds.
 
     So RcfCell<T> is similar to Box<T> ?
 
@@ -2443,26 +2443,26 @@ NOTES:
 
 So....
 
-Box<T> allows immutable or mutable borrows checked at compile time; 
-Rc<T> allows only immutable borrows checked at compile time; 
+Box<T> allows immutable or mutable borrows checked at compile time;
+Rc<T> allows only immutable borrows checked at compile time;
 RefCell<T> allows immutable or mutable borrows() checked at *runtime*.
 
 How RefCell<T> Works?
 --------------------
 
-When creating normal immutable and mutable references, we use the & and &mut syntax, respectively. 
+When creating normal immutable and mutable references, we use the & and &mut syntax, respectively.
 With RefCell<T>, we use the *borrow* and *borrow_mut* methods, which are part of the safe API that belongs to RefCell<T>.
 
 The borrow method returns the smart pointer type Ref<T>, and borrow_mut returns the smart pointer type RefMut<T>.
 Ref<T> and RefMut<T> are just a wrapper type for a immutably and mutably borrowed value from a RefCell<T> respectively.
 
 Both types implement Deref, so we can treat them like regular references.
-(Often we can directly call methods on `Ref` or `RefMut` and Rust automatically derefences and calls the methods on the underlying value which 
+(Often we can directly call methods on `Ref` or `RefMut` and Rust automatically derefences and calls the methods on the underlying value which
 `Ref` or `RefMut` holds)
 
 The RefCell<T> keeps track of how many Ref<T> and RefMut<T> smart pointers are currently active.
 
-Every time we call borrow, the RefCell<T> increases its count of how many immutable borrows are active. When a Ref<T> value goes out of scope, the count of immutable borrows goes down by one. 
+Every time we call borrow, the RefCell<T> increases its count of how many immutable borrows are active. When a Ref<T> value goes out of scope, the count of immutable borrows goes down by one.
 
 Just like the compile-time borrowing rules, *RefCell<T> lets us have many immutable borrows or one mutable borrow at any point in time.*
 
@@ -2475,25 +2475,25 @@ use std::cell::RefCell;
 
 fn main() {
    let val2 = Vec::new();
-   
+
    val2.push(10); // cannot borrow `val2` as mutable, as it is not declared as mutablev
-   
+
    // Using RefCell<T>
-   
+
    let val1 = RefCell::new(Vec::new());
-   
+
    let mut borrow_1 = val1.borrow_mut(); // The borrow_mut method returns a RefMut<T> smart pointer
-   
+
    // We can directly call methods on the RefMut<T> smart pointer and they are called on the inner value
    // Here the compiler first looks for a push method on RefMut<Vec<T>>.
    // Because there isn’t one, it automatically dereferences the value and looks for it on Vec<T>, which succeeds.
    // So, borrow_1.push(10); -> automatic dereferencing -> (*borrow_1).push() -> (*RefMut<Vec<T>>).push() -> <Vec<T>>.push()
    borrow_1.push(10);
-   
+
    val1.borrow();    // RUNTIME ERROR ! thread 'main' panicked at 'already mutably borrowed: BorrowError'
-   
+
    let mut borrow_2 = val1.borrow_mut();
-   
+
    borrow_2.push(12); // RUNTIME ERROR ! thread 'main' panicked at 'already borrowed: BorrowMutError'
 }
 ```
@@ -2519,16 +2519,16 @@ use std::rc::Rc;
 fn main() {
     let value = Rc::new(RefCell::new(5)); // Wrap the value '5' in a RefCell<T> and then wrap it in a Rc<T>
 
-    // Here we use Rc::clone() to so both 'a' and 'value' have ownership of the inner 5 value 
+    // Here we use Rc::clone() to so both 'a' and 'value' have ownership of the inner 5 value
     // rather than transferring ownership from 'value' to 'a' or having a borrow from value.
     // Next, we wrap the `List` again in a Rc<T> since we later wish to give ownership of 'a' to 'b' and 'c'
-    let a = Rc::new(List::Cons(Rc::clone(&value), Rc::new(List::Nil))); 
-    
+    let a = Rc::new(List::Cons(Rc::clone(&value), Rc::new(List::Nil)));
+
     // Add a new value '3' and '4' to 'b' and 'c' respectively using `Rc::new(RefCell::new())`
     // Also, adding both 'b' and 'c' as the owners of 'a' by `Rc::clone(&a)`
     let b = List::Cons(Rc::new(RefCell::new(3)), Rc::clone(&a));
     let c = List::Cons(Rc::new(RefCell::new(4)), Rc::clone(&a));
-    
+
     // At this point Rc<T> for '5' is owned by 2 owners 'value' and 'a'
     // and Rc<T> for 'a' is owned by 3 owners 'a', 'b' and 'c'
 
@@ -2536,9 +2536,9 @@ fn main() {
     // Here calling borrow_mut on 'value', uses the automatic dereferencing to dereference the Rc<T> to the inner RefCell<T>
     // Then borrow_mut method on RefCell<T> returns a RefMut<T> smart pointer
     // Now we use the dereference operator(*) on it and change the inner value.
-    
+
     // HOW IT WORKS:-
-    // *value.borrow_mut() -> *(Rc<RefCell<T>>.borrow_mut()) -> 
+    // *value.borrow_mut() -> *(Rc<RefCell<T>>.borrow_mut()) ->
     // Now automatic dereferencing happens here since borrow_mut() is for RefCell<T> so it automatically deferences Rc<RefCell<T>> to RefCell<T> then ...
     // -> *(RefCell<T>.borrow_mut()) -> *(RefMut<T>) -> 5 (since RefMut implements DerefMut)
     *value.borrow_mut() += 10;
@@ -2546,7 +2546,7 @@ fn main() {
     println!("a after = {:?}", a); // a after = Cons(RefCell { value: 15 }, Nil)
     println!("b after = {:?}", b); // b after = Cons(RefCell { value: 3 }, Cons(RefCell { value: 15 }, Nil))
     println!("c after = {:?}", c); // c after = Cons(RefCell { value: 4 }, Cons(RefCell { value: 15 }, Nil))
-    
+
 }
 ```
 
@@ -2562,7 +2562,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 // The second element in the Cons variant is now RefCell<Rc<List>>,
-// Rc<<List> allows mutliple owners of the List and 
+// Rc<<List> allows mutliple owners of the List and
 // RefCell<Rc<List>> allows mutiple owners to have mutable access and ability to update the List
 // This helps if we want to modify the 2nd element that is which List value a Cons variant is pointing to.
 #[derive(Debug)]
@@ -2584,7 +2584,7 @@ impl List {
 
 fn main() {
     // Create new Cons List where 2nd element is List::Nil wrapped like RefCell<Rc<List::Nil>>
-    let a = Rc::new(Cons(5, RefCell::new(Rc::new(List::Nil)))); 
+    let a = Rc::new(Cons(5, RefCell::new(Rc::new(List::Nil))));
 
     println!("a initial rc count = {}", Rc::strong_count(&a)); // Strong is 1 since Rc<T> in 'a' is only owned by 'a'
     println!("a next item = {:?}", a.tail()); // This is Some(RefCell { value: Nil })
@@ -2604,16 +2604,16 @@ fn main() {
 
     println!("b rc count after changing a = {}", Rc::strong_count(&b)); // Strong count of 'b' is 2 since it now has 2 owners 'b' and 'a'
     println!("a rc count after changing a = {}", Rc::strong_count(&a));// Strong count of 'a' is 2 since it now has 2 owners 'a' and 'b'
-    
+
     // Now we have a cycle a -> 5 -> b -> 10 -> a
 
-    
+
     // This is possible memory leak
     // Tt will overflow the stack beaucse of the cylce a -> 5 -> b -> 10 -> a
     // Rust will try to print the Lists following the cycle until stack overflows
     // RUNTIME PANIC ! thread 'main' has overflowed its stack
-    println!("a next item = {:?}", a.tail()); 
-    
+    println!("a next item = {:?}", a.tail());
+
     // CYCLE LIKE: Some(RefCell { value: Cons(10, RefCell { value: Cons(5, RefCell { value: Cons(10, RefCell { value: Cons(5, RefCell { ...
 }
 ```
@@ -2668,7 +2668,7 @@ use std::rc::{Rc, Weak};
 #[derive(Debug)]
 struct Node {
     value: i32,
-    parent: RefCell<Weak<Node>>, 
+    parent: RefCell<Weak<Node>>,
     children: RefCell<Vec<Rc<Node>>>,
 }
 
@@ -2682,10 +2682,10 @@ fn main() {
         parent: RefCell::new(Weak::new()),
         children: RefCell::new(vec![]),
     });
-    
+
     // Here, Rc<Node> in leaf node has a strong count of 1 and a weak count of 0
 
-    // Here, we try to get a reference to the parent of leaf by using the upgrade method, 
+    // Here, we try to get a reference to the parent of leaf by using the upgrade method,
     // we get a None value as their is no parent.
     // leaf.parent.borrow().upgrade() -> RefCell::new(Weak::new()).borrow().upgrade()
     // -> Weak::new().upgrade() -> Option::None
@@ -2697,13 +2697,13 @@ fn main() {
     // and creates a new owner of leaf
     let branch = Rc::new(Node {
         value: 5,
-        parent: RefCell::new(Weak::new()), // Empty Weak<Node> reference in the parent field, because branch doesn’t have a parent node. 
+        parent: RefCell::new(Weak::new()), // Empty Weak<Node> reference in the parent field, because branch doesn’t have a parent node.
         children: RefCell::new(vec![Rc::clone(&leaf)]),
     });
-    
+
     // Here, Rc<Node> in leaf node has a strong count of 2 and a weak count of 0
     // since the Rc<Node> is owned by leaf and by branch because of Rc::clone(&leaf)
-    
+
     // Here Rc<Node> in branch node has a strong count of 1 and a weak count of 0
     // Since the Rc<Node> is owned by branch
 
@@ -2712,14 +2712,14 @@ fn main() {
     // Rc::downgrade(&branch) creates a new weak reference of 'branch'
     // Now we replace leaf's parent that is the empty Weak::new() with the Weak reference to branch
     *leaf.parent.borrow_mut() = Rc::downgrade(&branch);
-    
+
     // Here, Rc<Node> in leaf node remains with a strong count of 2 and a weak count of 0
     // while Rc<Node> in branch node now has a strong count of 1 and a weak count of 1
     // weak_count is now 1 since branch is now weakly referenced from leaf
-    
+
 
     // Now leaf has a parent so ...
-    // leaf.parent.borrow().upgrade() -> RefCell::new(Weak::new(branch)).borrow().upgrade() 
+    // leaf.parent.borrow().upgrade() -> RefCell::new(Weak::new(branch)).borrow().upgrade()
     // -> Weak::new(branch).upgrade() -> Option::Some<branch>
     println!("leaf parent = {:?}", leaf.parent.borrow().upgrade());
     // Output of above:
@@ -2729,16 +2729,16 @@ fn main() {
 
 Summary of Box<T>, Rc<T> and RefCell<T>:
 
-* The Box<T> type has a known size and points to data allocated on the heap. 
-* The Rc<T> type keeps track of the number of references to data on the heap so that data can have multiple owners. 
-* The RefCell<T> type with its interior mutability gives us a type that we can use when we need an immutable type 
+* The Box<T> type has a known size and points to data allocated on the heap.
+* The Rc<T> type keeps track of the number of references to data on the heap so that data can have multiple owners.
+* The RefCell<T> type with its interior mutability gives us a type that we can use when we need an immutable type
   but need to change an inner value of that type; it also enforces the borrowing rules at runtime instead of at compile time.
 
 # INTERIOR MUTABILITY IN A NUTSHELL!
 
 mut is exclusive access and non-mut is shared access.
 Shared access means you have readonly immutable access but you can get mutable access through the interior mutability pattern using
-RefCell<T> if there does not exist any other mutable access to that data at that point, 
+RefCell<T> if there does not exist any other mutable access to that data at that point,
 otherwise code will panic like  thread 'main' panicked at 'already mutably borrowed: BorrowError'.
 *Interior mutability allowes us to get exclusive access(mut access) to something for which we only have shared access(non mut access).*
 
@@ -2758,7 +2758,7 @@ Runtime ?
 =========
 by runtime we mean code that is included by the language in every binary. This code can be large or small depending on the language, but every non-assembly language will have some amount of runtime code.
 
-*The green-threading M:N model requires a larger language runtime to manage threads.* 
+*The green-threading M:N model requires a larger language runtime to manage threads.*
 *As such, the Rust standard library only provides an implementation of 1:1 threading.*
 Because Rust is such a low-level language, there are crates that implement M:N threading if you would rather trade overhead for aspects such as more control over which threads run when and lower costs of context switching, for example.
 
@@ -2771,7 +2771,7 @@ thread::spawn(|| {
         for i in 1..10 {
             println!("hi number {} from the spawned thread!", i);
 
-            // The calls to thread::sleep force a thread to stop its execution for a short duration, allowing a different thread to run. 
+            // The calls to thread::sleep force a thread to stop its execution for a short duration, allowing a different thread to run.
             thread::sleep(Duration::from_millis(1)); // Sleep for 1 ms
         }
     });
@@ -2782,7 +2782,7 @@ This means if we start a thread from the main thread that thread will stop when 
 
 
 `thread.spawn` returns a join handle over which we can wait using the join() method.
-Calling join on the handle blocks the thread currently running until the thread represented by the handle terminates. 
+Calling join on the handle blocks the thread currently running until the thread represented by the handle terminates.
 
 ```
 let handle = thread::spawn(|| {
@@ -2795,7 +2795,7 @@ let handle = thread::spawn(|| {
 
 OWNERSHIP ?
 
-If the colsure in a thread captures a varaible from the outerscope then this might be a problem 
+If the colsure in a thread captures a varaible from the outerscope then this might be a problem
 
 Example:
 
@@ -2845,15 +2845,15 @@ Thus, the move keyword overrides Rust’s conservative default of borrowing; it 
 
 == Message Passing using Channels ==
 
-A channel in rust has two halves: a transmitter and a receiver. 
+A channel in rust has two halves: a transmitter and a receiver.
 The transmitter half is the upstream location where we put the data in teh channel, and the receiver half will recieve the data from the channel.
 
 We create a new channel using the `mpsc::channel` function; mpsc stands for `multiple producer, single consumer`.
 
 *MPSC - Multi-producer, single-consumer FIFO queue communication primitives.*
 
-mpsc is the way Rust’s standard library implements channels, a channel can have multiple sending ends that produce values 
-but only one receiving end that consumes those values. 
+mpsc is the way Rust’s standard library implements channels, a channel can have multiple sending ends that produce values
+but only one receiving end that consumes those values.
 
 We call `mpsc::channel()` to create a channel a get a sender and receiver returned as a tuple like `(Sender<T>, Receiver<T>)`
 
@@ -2865,7 +2865,7 @@ use std::thread;
 
 fn main() {
 
-    // mpsc::channel function returns a tuple, the first element of which is the sending end and the second element is the receiving end. 
+    // mpsc::channel function returns a tuple, the first element of which is the sending end and the second element is the receiving end.
     let (tx, rx) = mpsc::channel();
 
     thread::spawn(move || {
@@ -2884,7 +2884,7 @@ So, we use a closure that will capture the transmitting end, and use `move` to m
 
 ### Transmitting using send():-
 
-`tx.send(val)` returns a Result<T, E> type, so if the receiving end has already been dropped 
+`tx.send(val)` returns a Result<T, E> type, so if the receiving end has already been dropped
 and there’s nowhere to send a value, the send operation will return an error.
 
 ### Receiving using recv and try_recv
@@ -2892,12 +2892,12 @@ and there’s nowhere to send a value, the send operation will return an error.
 `recv()` blocks the threadand waits for the channel untill a message is recieved.
 `try_recv()` method doesn’t block, but will instead return a Result<T, E> immediately.
 
-Both `recv()` and `try_recv()` return a Result<T, E>. 
+Both `recv()` and `try_recv()` return a Result<T, E>.
 
 `recv()` which returns Err if the sending end of the channel closes, recv will return an error to signal that no more values will be coming.
 `try_recv()` returns Err if Err value if there aren’t any messages this time.
 
-We can call `iter()` on the `Receiver<T>` which will return a iterator that will block when `next()` called, untill it receives 
+We can call `iter()` on the `Receiver<T>` which will return a iterator that will block when `next()` called, untill it receives
 a new value from the channel.
 So doing `for i in receiver.iter()` will wait forever since, it will always call `next()` and keep blocking untill a new request is obtained.
 
@@ -2906,7 +2906,7 @@ So doing `for i in receiver.iter()` will wait forever since, it will always call
 
 Ownership of a value iks lost when we send it down a channel from the transmitting end.
 
-If can have multiple senders/transmitters for a channel (but only one receiver), this can be achieved by using the 
+If can have multiple senders/transmitters for a channel (but only one receiver), this can be achieved by using the
 `mpsc::Sender::clone(&tx);` method.
 
 
@@ -2941,7 +2941,7 @@ thread::spawn(move || {
     }
 });
 
-// Here, we’re not calling the recv() or try_recv() function explicitly anymore: instead, 
+// Here, we’re not calling the recv() or try_recv() function explicitly anymore: instead,
 // we’re treating rx as an iterator, since we receive a vector of values.
 for received in rx {
     println!("Got: {}", received);
@@ -2949,7 +2949,7 @@ for received in rx {
 
 ```
 
-Note, here `for received in rx {...}` works and we can iterate over the `Receiver<T>` because it has a 
+Note, here `for received in rx {...}` works and we can iterate over the `Receiver<T>` because it has a
 blanked implementation of the `std::iter::IntoIterator` trait(having the next() method.
 
 
@@ -2963,16 +2963,16 @@ To access some data a thread must first acquire a lock over that data and then m
 ## IMP NOTES about Mutex<T>:
 
 
-* To access the data inside the mutex, we use the lock method to acquire the lock. 
+* To access the data inside the mutex, we use the lock method to acquire the lock.
 This call will block the current thread so it can’t do any work until it’s our turn to have the lock.
 
-* The call to lock would fail if another thread holding the lock panicked. 
+* The call to lock would fail if another thread holding the lock panicked.
 In that case, no one would ever be able to get the lock (this is called "poisoning" where a mutex is considered poisoned whenever a thread panics while holding the mutex.)
 
 * After we’ve acquired the lock,we get a mutable reference to the data inside. We must aquire a lock on the Mutex<T> to access the wrapped value `T` inside.
 
  * Mutex<T> is a smart pointer.
-The call to lock returns a smart pointer called `MutexGuard`, wrapped in a `LockResult` that we handled with the call to unwrap. 
+The call to lock returns a smart pointer called `MutexGuard`, wrapped in a `LockResult` that we handled with the call to unwrap.
 The `MutexGuard` is also a smart pointer that implements `Deref` to point at our inner data (`pub fn lock(&self) -> LockResult<MutexGuard<'_, T>>`)
 the smart pointer also has a `Drop` implementation that releases the lock automatically when a `MutexGuard` goes out of scope.
 
@@ -2987,15 +2987,15 @@ fn main() {
     {
 
         // This is a blocking operation that waits untill the current thread can acquire a lock over the data
-        //  LockResult is actaully like, `type LockResult<Guard> = Result<Guard, PoisonError<Guard>>;` 
+        //  LockResult is actaully like, `type LockResult<Guard> = Result<Guard, PoisonError<Guard>>;`
         // so we can call unwrap on it to get the underlying MutexGuard<i32> here
         // `MutexGuard` is also a smart pointer that implements `Deref`, so we can do `*num = 6;`
         let mut num = m.lock().unwrap(); // We have a mutable MutexGuard<i32>
         *num = 6;
 
-    } // At this point the lock is released automatically since `MutexGuard` has a `Drop` implementation 
+    } // At this point the lock is released automatically since `MutexGuard` has a `Drop` implementation
       // that releases the lock automatically when a MutexGuard goes out of scope
-    
+
     println!("m = {:?}", m);
 }
 ```
@@ -3007,7 +3007,7 @@ When we move a Mutex to a thread's closure it takes ownership of that Mutex, but
 
 We can use Rc<T> smart pointer here to have mutiple owners of the Mutex however this will give an error like...
 
-`Rc<Mutex<i32>> cannot be sent between threads safely.` 
+`Rc<Mutex<i32>> cannot be sent between threads safely.`
 The compiler is also telling us the reason why: `the trait Send is not implemented for Rc<Mutex<i32>>`
 
 Thus, `Rc<T>` is not safe to share across threads. When `Rc<T>` manages the reference count, it adds to the count for each call to clone and subtracts from the count when each clone is dropped. But it doesn’t use any concurrency primitives to make sure that changes to the count can’t be interrupted by another thread.
@@ -3015,7 +3015,7 @@ Thus, `Rc<T>` is not safe to share across threads. When `Rc<T>` manages the refe
 Unlike `Rc<T>`, `Arc<T>` uses atomic operations for its reference counting, so `Arc<T>` (atomic reference type) is safe to use in concurrent situations.
 So, `Arc<T>` allows us to have multiple owners even in cocurrent situtaions, but the disadvantage is that atomic operations are more expensive than ordinary memory accesses. If you are not sharing reference-counted allocations between threads, consider using `Rc<T>` for lower overhead.
 
-Arc<T> will implement `Send` and `Sync` as long as the T implements Send and Sync. 
+Arc<T> will implement `Send` and `Sync` as long as the T implements Send and Sync.
 If you need to mutate through an Arc, use `Mutex`, `RwLock`, or one of the Atomic types wrapped in a Arc.
 
 ### Something about Atomic Types(Optional):
@@ -3023,7 +3023,7 @@ https://doc.rust-lang.org/std/sync/atomic/index.html
 
 All atomic types are guaranteed to be lock-free if they're available. This means they don't internally acquire a global mutex.
 Atomic types provide primitive shared-memory communication between threads, and are the building blocks of other concurrent types.
-The `std::sync::atomic` defines atomic versions of a select number of primitive types, including AtomicBool, AtomicIsize, AtomicUsize, AtomicI8, AtomicU16, etc. 
+The `std::sync::atomic` defines atomic versions of a select number of primitive types, including AtomicBool, AtomicIsize, AtomicUsize, AtomicI8, AtomicU16, etc.
 Atomic types present operations that, when used correctly, synchronize updates between threads.
 Usage like: `let lock = Arc::new(AtomicUsize::new(1));`
 
@@ -3045,7 +3045,7 @@ fn main() {
         let handle = thread::spawn(move || { // The new owner of the mutex that is `counter` is moved inside the thread's closure
 
             // Aquire lock over the Mutex
-            // Arc<Mutex<i32>>.lock().unwrap() -> (Rust is automatically dereferencing) -> 
+            // Arc<Mutex<i32>>.lock().unwrap() -> (Rust is automatically dereferencing) ->
             // Mutex<i32>.lock().unwrap() -> LockResult<MutexGuard<i32>>.unwrap() -> MutexGuard<i32>
             let mut num = counter.lock().unwrap();
 
@@ -3061,7 +3061,7 @@ fn main() {
         handle.join().unwrap();
     }
 
-    // By this point since we have waited on the handles of all the threads in the above loop, 
+    // By this point since we have waited on the handles of all the threads in the above loop,
     // all threads have finished and we get the final value of counter that is 10
     println!("Result: {}", *counter.lock().unwrap()); // counter is still a Arc<Mutex<i32>> so we have to lock it and then dereference to get the inner i32 value
 }
@@ -3070,16 +3070,16 @@ fn main() {
 
 ## RefCell<T> vs Mutex<T> & Rc<T> vs Arc<T>
 
-Here, in the above example counter is immutable but we could get a mutable reference to the value inside it to update it like `*num += 1;`; 
+Here, in the above example counter is immutable but we could get a mutable reference to the value inside it to update it like `*num += 1;`;
 this means Mutex<T> provides interior mutability, as the Cell family does.
 
-Infact, Mutex is just a generalization of the RefCell, which does not panic on concurrent access unlike RefCell, 
+Infact, Mutex is just a generalization of the RefCell, which does not panic on concurrent access unlike RefCell,
 but rather allows one to wait (blocking the current thread, until another thread finishes its part of work).
 
 Similarly, Arc<T> is similar to Rc<T> and provides safe multiple ownership in a concurrent environment.
 
-Just like Rc<T>, there was arisk of creating reference cycles, where two Rc<T> values refer to each other, causing memory leaks (we solved this using Weak links). 
-Similarly, Mutex<T> comes with the risk of creating deadlocks. These occur when an operation needs to lock two resources and two threads 
+Just like Rc<T>, there was arisk of creating reference cycles, where two Rc<T> values refer to each other, causing memory leaks (we solved this using Weak links).
+Similarly, Mutex<T> comes with the risk of creating deadlocks. These occur when an operation needs to lock two resources and two threads
 have each acquired one of the locks, causing them to wait for each other forever. We must take care to avoid this(mitigation strategies for mutexes).
 
 
@@ -3098,7 +3098,7 @@ Any type composed entirely of Send types is automatically marked as Send as well
 
 *The Sync marker trait indicates that it is safe for the type implementing Sync to be referenced from multiple threads.*
 
-In other words, any type T is Sync if &T (a reference to T) is Send, meaning the reference can be sent safely to another thread. 
+In other words, any type T is Sync if &T (a reference to T) is Send, meaning the reference can be sent safely to another thread.
 Similar to Send, primitive types are Sync, and types composed entirely of types that are Sync are also Sync.
 
 The smart pointer Rc<T> is also not Sync for the same reasons that it’s not Send.
@@ -3214,19 +3214,19 @@ fn main() {
 
 ## Dynamic Method dispatch, `dyn` keyword and its runtime implications:
 
-When we use trait bounds on generics, the compiler generates nongeneric implementations of functions 
+When we use trait bounds on generics, the compiler generates nongeneric implementations of functions
 and methods for each concrete type that we use in place of a generic type parameter, this is called monomorphization.
 The code that results from monomorphization is doing static dispatch, which is when the compiler knows what method you’re calling at compile time.
 
-When we use trait objects, Rust must use dynamic dispatch. 
-The compiler doesn’t know all the types that might be used with the code that is using trait objects, 
+When we use trait objects, Rust must use dynamic dispatch.
+The compiler doesn’t know all the types that might be used with the code that is using trait objects,
 so it doesn’t know which method implemented on which type to call.
 
 `dyn` is a prefix of a trait object's type. (https://doc.rust-lang.org/std/keyword.dyn.html)
-The dyn keyword is used to highlight that calls to methods on the associated Trait are dynamically dispatched. 
+The dyn keyword is used to highlight that calls to methods on the associated Trait are dynamically dispatched.
 To use the trait this way, it must be 'object safe'.
 
-A dyn Trait reference contains two pointers. One pointer goes to the data (e.g., an instance of a struct). 
+A dyn Trait reference contains two pointers. One pointer goes to the data (e.g., an instance of a struct).
 Another pointer goes to a map of method call names to function pointers (known as a virtual method table or vtable).
 
 At run-time, when a method needs to be called on the dyn Trait, the vtable is consulted to get the function pointer and then that function pointer is called.
@@ -3245,7 +3245,7 @@ The *Self* (notice capital 'S') keyword is an alias for the type we’re impleme
 Trait objects must be object safe because once you’ve used a trait object, Rust no longer knows the concrete type that’s implementing that trait.
 
 So, if a trait method returns `Self`, rust does not know what is `Self` here because the trait object itself orgets the exact type that `Self` is.
-Similarly, if a trait method has generic type parameters it does not itself know, the concrete types that will become part of the type that implements the trait. 
+Similarly, if a trait method has generic type parameters it does not itself know, the concrete types that will become part of the type that implements the trait.
 When the type is forgotten through the use of a trait object, there is no way to know what types to fill in the generic type parameters with.
 
 Example:
@@ -3302,7 +3302,7 @@ print_coordinates(&point);
 
 ##  Refutable vs Irrefutable pattern
 
-Patterns come in two forms: refutable and irrefutable. Patterns that will match for any possible value passed are irrefutable. 
+Patterns come in two forms: refutable and irrefutable. Patterns that will match for any possible value passed are irrefutable.
 An example would be x in the statement let x = 5;
 
 Patterns that can fail to match for some possible value are refutable. An example would be Some(x) in the expression if let Some(x) = a_value because if the value in the a_value variable is None rather than Some, the Some(x) pattern will not match.
@@ -3317,7 +3317,7 @@ Eg: `let Some(x) = some_option_value; // Error wont compile,  refutable pattern 
 
 The if let and while let expressions accept refutable and irrefutable patterns.
 
-Eg: 
+Eg:
 
 ```
     if let Some(x) = some_option_value { // Works ! if let accept refutable and irrefutable patterns.
@@ -3370,9 +3370,9 @@ match x {
 
 match msg {
 
-        // matches a Message::ChangeColor enum variant that contains a Color::Rgb variant; 
+        // matches a Message::ChangeColor enum variant that contains a Color::Rgb variant;
         // then the pattern binds to the three inner i32 values.
-        Message::ChangeColor(Color::Rgb(r, g, b)) => println!(        
+        Message::ChangeColor(Color::Rgb(r, g, b)) => println!(
             "Change the color to red {}, green {}, and blue {}",
             r, g, b
         ),
@@ -3396,7 +3396,7 @@ let _x = 5;
 // ------------------
 
 // An unused variable starting with an underscore still binds the value, which might take ownership of the value
-// Using _ does not bind the value(ownership is not lost) but doing _x will bind the value, 
+// Using _ does not bind the value(ownership is not lost) but doing _x will bind the value,
 // the value is not usable because of the prefix(_x) but its ownership is lost
 
 let s = Some(String::from("Hello!"));
@@ -3423,7 +3423,7 @@ println!("{:?}", s); // ERROR ! borrow of moved value: `s`
 
 ## Match Guards
 
-A match guard is an additional if condition specified after the pattern in a match arm that must also match, 
+A match guard is an additional if condition specified after the pattern in a match arm that must also match,
 along with the pattern matching, for that arm to be chosen.
 
 Example:
@@ -3449,7 +3449,7 @@ Example:
 ```
 
 Using, match arms its also possible to avoid vraible shadowing when using varaibles with same names inside match arm
-Example: 
+Example:
 `Some(n) if n == y` Here we accept n only if it matches the variable y from outer scope, here we ensured that the pattern matches only if the value wrapped by Some is same as `y` and also we don't introduce a new variable y that would shadow the outer y isnide the match arm
 
 ## @Bindings
@@ -3468,3 +3468,418 @@ Example:
     ....
 
 ```
+
+
+# UNSAFE RUST
+
+Static analysis is conservative, sometimes code that might be correct might not compile.
+Also, low-level systems programming is one of the goals of the language, this often requires unsafe coe.
+Other use cases are when interfacing with C code, etc.
+
+Thu Rust allows us to write unsafe code, this means problems due to memory unsafety,
+such as null pointer dereferencing, can occur.
+
+To switch to unsafe Rust, use the unsafe keyword and then start a new block that holds the unsafe code.
+
+You can take five actions in unsafe Rust, called unsafe superpowers, that you can’t in safe Rust.
+
+* Dereference a raw pointer
+* Call an unsafe function or method
+* Access or modify a mutable static variable
+* Implement an unsafe trait
+* Access fields of unions
+
+unsafe doesn’t turn off the borrow checker or disable any other of Rust’s safety checks: if you use a reference in unsafe code, it will still be checked.
+
+The unsafe keyword only gives you access to these five features that are then not checked by the compiler for memory safety.
+
+## Dereferencing a Raw Pointer is Unsafe
+
+Raw pointers can be immutable or mutable and are written as *const T and *mut T, respectively.
+The asterisk isn’t the dereference operator; it’s part of the type name.
+
+Difference of Raw pointer from (references and smart pointers)..
+
+* Can ignore the borrowing rules by having both immutable and mutable pointers or multiple mutable pointers to the same location.
+* Aren’t guaranteed to point to valid memory.
+* Can be null.
+* No automatic cleanup
+
+
+Defining a raw pointer itself is not unsafe however dereferencing a raw pointer is Unsafe(since it might not point to a valid value)
+and has to done inside an unsafe block.
+
+Example:
+```
+    let mut num = 5;
+
+    let r1 = &num as *const i32;    // Immutable raw pointer reference
+    let r2 = &mut num as *mut i32;  // Mutable raw pointer reference
+
+    // Here since we are using raw pointers we have a mutable as well as immutable
+    // pointer to the same data, this is possible since borrowing rules don't apply to raw pointers.
+
+    // Dreferencing raw pointers in unsafe and must be done inside a unsafe block
+    unsafe {
+        println!("r1 is: {}", *r1);
+        println!("r2 is: {}", *r2);
+    }
+
+```
+
+### Safe Abstraction over Unsafe Code
+
+Trying to code the `split_at_mut()` function which splits a string and returns
+a tuple containg the 2 splited parts...
+
+Example
+```
+fn split_at_mut(slice: &mut [i32], mid: usize) -> (&mut [i32], &mut [i32]) {
+    let len = slice.len();
+
+    assert!(mid <= len); // Panic if  split index exceeds string length
+
+    (&mut slice[..mid], &mut slice[mid..])
+}
+
+```
+
+This wont work since although we’re borrowing different parts of the string slice, Rust’s borrow checker can’t understand that
+and will not allow us to `cannot borrow `*slice` as mutable more than once at a time`, although
+Borrowing different parts of a slice is fundamentally okay because the two slices aren’t overlapping, so we don't have two mutable
+references to the safe data.
+
+Writing unsafe code to solve this...
+
+```
+use std::slice;
+
+fn split_at_mut(slice: &mut [i32], mid: usize) -> (&mut [i32], &mut [i32]) {
+    let len = slice.len();
+    let ptr = slice.as_mut_ptr(); // returns a raw pointer with the type *mut i32
+
+    assert!(mid <= len);
+
+    // `slice::from_raw_parts_mut` function takes a raw pointer and a length, and it creates a slice
+    unsafe {
+        (
+            slice::from_raw_parts_mut(ptr, mid),
+            slice::from_raw_parts_mut(ptr.add(mid), len - mid), // Take (len-mid) chars from index `ptr.add(mid)`
+        )
+    }
+}
+```
+
+Here, the function `slice::from_raw_parts_mut` is unsafe because it takes a raw pointer and must trust that this pointer is valid.
+The `add` method on raw pointers is also unsafe.
+
+We use a safe API to wrap the unsafe code which we know will never fail, but rust does not know this so we use the unsafe block.
+
+## Using extern Functions to Call External Code is Unsafe
+
+Rust has a keyword, extern, that facilitates the creation and use of a Foreign Function Interface (FFI). An FFI is a way for a programming language to define functions and enable a different (foreign) programming language to call those functions.
+
+Example:
+
+```
+// "C" part defines which application binary interface (ABI) the external function uses.
+// the ABI defines how to call the function at the assembly level. Here we use the "C" ABI.
+extern "C" {
+    fn abs(input: i32) -> i32;
+}
+
+fn main() {
+    unsafe {
+        println!("Absolute value of -3 according to C: {}", abs(-3));
+    }
+}
+```
+
+## Accessing or Modifying a Mutable Static Variable is unsafe
+
+In Rust, global variables are called static variables.
+
+The names of static variables are in SCREAMING_SNAKE_CASE by convention, and we must annotate the variable’s type.
+
+**Static variables can only store references with the 'static lifetime**
+
+Accessing an immutable static variable is safe.
+**Static variables can be mutable BUT Accessing and modifying mutable static variables is unsafe.**
+
+This is because, with mutable data that is globally accessible, it’s difficult to ensure
+there are no data races when accessing data from multiple threads is difficult,
+which is why Rust considers mutable static variables to be unsafe.
+
+Example:
+
+```
+static mut COUNTER: u32 = 0; // static mutable variable
+
+fn add_to_count(inc: u32) {
+    unsafe {
+        COUNTER += inc; // Modifying static mutable variable is UNSAFE !
+    }
+}
+
+fn main() {
+    add_to_count(3);
+
+    unsafe {
+        println!("COUNTER: {}", COUNTER); // Even accessing static mutable variable is UNSAFE !
+    }
+}
+```
+
+## Implementing an Unsafe Trait is Unsafe
+
+A trait is unsafe when at least one of its methods has some invariant that the compiler can’t verify.
+
+Example:
+```
+unsafe trait Foo {
+    // methods go here
+}
+
+unsafe impl Foo for i32 {
+    // method implementations go here
+}
+```
+
+## Accessing Fields of a Union is Unsafe
+
+A union is similar to a struct, but only one declared field is used in a particular instance at one time. Unions are primarily used to interface with unions in C code. Accessing union fields is unsafe because Rust can’t guarantee the type of the data currently being stored in the union instance.
+
+# Advanced Traits
+
+
+## Associated Types
+
+Associated types connect a type placeholder with a trait such that the trait method definitions can use these placeholder types in their signatures.
+
+So, we can define a trait that uses some types without needing to know exactly what those types are until the trait is implemented.
+
+The implementor of a trait will specify the concrete type to be used in this type’s place for the particular implementation.
+
+Example of the Iterator trait with assocaited type:
+
+```
+pub trait Iterator {
+    type Item; // Associated Type
+
+    fn next(&mut self) -> Option<Self::Item>;
+}
+
+impl Iterator for Counter {
+    type Item = u32; // We specify the concrete type to be used in this assocaited type’s place when implementing the trait
+
+    fn next(&mut self) -> Option<Self::Item> {
+        ....
+    }
+}
+
+```
+
+Difference between associated types and Generics?
+
+If we use generics in a trait defination instead of associated types, it will work. However, whhen ever we implement that trait we MUST annotate the types. like `Iterator<String> for Counter`, since by using generics we say that there can be mutilple implementations of `Iterator` for Counter. Like Count<String>, Counter<u32>, etc. This is okay if we need different implementatitonso of counter for different types.
+
+With associated types, we don’t need to annotate types because we can’t implement a trait on a type multiple times.
+
+## Operator Overloading and Default generic Types
+
+We can specify a default concrete type for the generic type.
+
+Example:
+
+Rust doesn’t allow you to create your own operators or overload arbitrary operators. But you can overload the operations and corresponding traits listed in std::ops by implementing the traits associated with the operator.
+
+```
+use std::ops::Add;
+
+#[derive(Debug, PartialEq)]
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+impl Add for Point {
+    type Output = Point;
+
+    fn add(self, other: Point) -> Point {
+        Point {
+            x: self.x + other.x,
+            y: self.y + other.y,
+        }
+    }
+}
+
+fn main() {
+    assert_eq!(
+        Point { x: 1, y: 0 } + Point { x: 2, y: 3 },
+        Point { x: 3, y: 3 }
+    );
+}
+
+```
+
+The `Add` trait looks like...
+
+```
+trait Add<Rhs=Self> {
+    type Output;
+
+    fn add(self, rhs: Rhs) -> Self::Output;
+}
+```
+
+Here the `add()` method receives a argument `rhs` of generic type `Rhs`, but we don't need to specify
+the type of `Rhs` since the default is `self` given by `trait Add<Rhs=Self>`.
+
+This means by default the `add()` method assumes that the 2nd argument it receives will be of the same type as `Self`.
+In the example we add two point instance so they are both of the same type, thus this assumption works fine, and due
+to this default generic type we don't have to specify the generic type of the 2nd argument when implmenting `Add`.
+
+However, we can override the default generic if the 2nd parameter passed to the `add()` method is of a different type than
+`self`, for exaple if we want to add `Point` and `Offset` then we can implement add as: `impl Add<Offset> for Point {...}`
+now Point `{x: 1, y: 0} + Offset {del: 9}` works !
+
+
+## Disambiguation: Calling Methods with the Same Name
+
+Self explanatory example:
+
+```
+trait Pilot {
+    fn fly(&self);
+}
+
+trait Wizard {
+    fn fly(&self);
+}
+
+struct Human;
+
+// Human struct implements fly method for Pilot trait
+impl Pilot for Human {
+    fn fly(&self) {
+        println!("This is your captain speaking.");
+    }
+}
+
+// Human struct implements fly method for Wizard trait
+impl Wizard for Human {
+    fn fly(&self) {
+        println!("Up!");
+    }
+}
+
+// Human struct implments fly method on its own type
+impl Human {
+    fn fly(&self) {
+        println!("*waving arms furiously*");
+    }
+}
+
+fn main() {
+    let person = Human;
+    person.fly();           // compiler defaults to calling the method that is directly implemented on the type
+    Pilot::fly(&person);    // Fly for Pilot Trait
+    Wizard::fly(&person);   // Fly for Wizrd Trait
+}
+```
+
+For traits where the method takes in `&self` this works:
+```
+person.fly(); // This is same as below if there is only one implmentation of fly, otherwise error: disambiguate the associated function
+Pilot::fly(&person); // This is required if there are many implmenetations of fly for different traits
+```
+
+But what if the trait trait method does not need `&self`, how to disambiguate incase of same method names for many traits?
+
+We need to use fully qualified syntax like: `<Type as Trait>::function(receiver_if_method, next_arg, ...);`
+
+Example:
+`<Dog as Animal>::baby_name()`
+Calls the baby_name() method from the Animal trait as implemented on Dog by saying that we want to treat the Dog type as an Animal for this function call.
+
+* SUMMARY: So, when calling a method of a trait and passing it self we can do:`
+
+```
+ person.fly();                      // If only one fly() implementaions exists
+ Wizard::fly(&person);              // If multiple fly() implementaions exists
+ <Human as Wizard>::fly(&person);   // If multiple fly() implementaions exists and they dont take &self, use fully qualified syntax
+                                    // This is not required here as fly takes &self here
+```
+
+## Supertraits: Require One Trait’s Functionality Within Another Trait
+
+Sometimes, you might need one trait to use another trait’s functionality.
+In this case, you need to rely on the dependent trait also being implemented, you can enforce this using super traits.
+
+SYNTAX: trait <name>: <Super trait name>
+
+Example:
+
+Let’s say we want to make an OutlinePrint trait with an outline_print method that will print a value framed in asterisks. That is, given a Point struct that implements Display to result in (x, y), when we call outline_print on a Point instance
+
+```
+use std::fmt;
+
+// To use OutlinePrint trait the type must also implement thhe Display trait
+// Thus, Display trait is a super trait for the Outline print trait
+trait OutlinePrint: fmt::Display {
+    fn outline_print(&self) {
+        // ....
+    }
+}
+
+impl fmt::Display for Point {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "({}, {})", self.x, self.y)
+    }
+}
+
+// This works since Point implements Display trait otherwise we get "error[E0277]: `Point` doesn't implement `std::fmt::Display`"
+impl OutlinePrint for Point {}
+
+```
+
+## Newtype Pattern to Implement External Traits on External Types
+
+When implementing traits *we cannot implment a external trait for a external type*.
+we’re allowed to implement a trait on a type as long as either the trait or the type are local to our crate.
+
+How ever this is possible by using the *new type pattern* which involves wrapping up the external type in a tuple struct
+thus making a new type which is now local to our crate.
+
+There is no runtime performance penalty for using this pattern, and the wrapper type is omitted at compile time.
+
+Example:
+
+Both `Display` trait and `Vec<T>` type are external to us, so it is impossible to implement the DIaply trait on vectors.
+However we can wrap up thr Vec in a tuple struct making it a new type over which we implement `Display`
+
+```
+use std::fmt;
+
+// Tuple struct to wrap up Vec<String>
+struct Wrapper(Vec<String>);
+
+// Implement Displlay for the Wrapper type
+impl fmt::Display for Wrapper {
+
+    // self.0 to access the inner Vec<T>, because Wrapper is a tuple struct and Vec<T> is the item at index 0 in the tuple
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "[{}]", self.0.join(", "))
+    }
+}
+
+fn main() {
+    let w = Wrapper(vec![String::from("hello"), String::from("world")]);
+    println!("w = {}", w);
+}
+```
+
+However, we can't directly call the methods of the Vector type on the Wrapper, since wrapper is a new type.
+But, we can get around this limitation by implementing the `Deref` trait on the Wrapper to return the inner type.
+Then all vector methods is directly available with `Wrapper`.
