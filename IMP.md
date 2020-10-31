@@ -3883,3 +3883,97 @@ fn main() {
 However, we can't directly call the methods of the Vector type on the Wrapper, since wrapper is a new type.
 But, we can get around this limitation by implementing the `Deref` trait on the Wrapper to return the inner type.
 Then all vector methods is directly available with `Wrapper`.
+
+ANother, use of the newtype pattern is in abstracting away some implementation details of a type: the new type can expose a public API that is different from the API of the private inner type if we used the new type directly to restrict the available functionality.
+
+## Type Aliases
+
+Type aliases give an existing type another name.
+The main use case for type synonyms is to reduce repetition, for lengthy types.
+
+With aliases we can call all methods that can be called on the original type and use any special operators like `?`, etc.
+
+Examples:
+
+```
+type Int = i32; // Give an alias "Int" for type "i32"
+let x: i32 = 5;
+let y: Int = 5;
+
+// Alias a length type like: type Thunk = Box<dyn Fn() + Send + 'static>;
+
+// The std::io module in the standard library, uses an alias like: type Result<T> = std::result::Result<T, std::io::Error>;
+// So, we can write `Result<usize>` instead of `Result<usize, Error>`
+```
+
+## Never type
+
+Rust has a special type named ! (empty type).
+Its also called the never type because it *stands in the place of the return type when a function will never return.*
+Functions that return never are called diverging functions.
+
+An expressions of type ! can be coerced into any other type.
+
+Examples:
+
+```
+// Here, the function bar returns never
+// Since it panics!
+fn bar() -> ! { panic!(); }
+
+
+// Continue has a ! value. That is, when Rust computes the type of guess, it looks at both match arms, the former with a value of u32
+// and the latter with a ! value. Because ! can never have a value, Rust decides that the type of guess is u32.
+loop {
+    let guess: u32 = match guess.trim().parse() {
+        Ok(num) => num,
+        Err(_) => continue,
+    };
+}
+```
+
+## Dynamically Sized Types and the Sized Trait
+
+Dynamically sized types or DSTs or unsized types, let us write code using values whose size we can know only at runtime.
+`str` is a DST, since its size is not known at compile time that is we can’t know how long the string is until runtime,
+meaning we can’t create a variable of type str.
+
+Example:
+
+```
+let s1: str = "Hello there!"; // ERROR ! the size for values of type `str` cannot be known at compilation time
+                              // = help: the trait `std::marker::Sized` is not implemented for `str`
+                              // = note: all local variables must have a statically known size
+```
+
+This is because, the size of str depends upon the size of the string stored in it,
+So, str = "cat" would need 3 bytes while str = "Elephant" woudl need 8 bytes, so we cant assign str a fixed size like other types like u32,f64, etc.
+
+For, such types we instead use a pointer like `&str` in case of `str`, the pointer's size is known at compile time.
+*The pointer &str has two values: the base address of the str and its length.*
+
+In general, this is the way in which dynamically sized types are used in Rust: they have an extra bit of metadata that stores the size of the dynamic information. The golden rule of dynamically sized types is that we must always put values of dynamically sized types behind a pointer of some kind.
+
+Similary instead of using `&str`, we can use `str` with other types of pointers like `Box<Str>`, `Rc<str>`, etc.
+
+This is also same with *trait objects*.
+Thus, to use traits as trait objects, we must put them behind a pointer, such as &dyn Trait or `Box<dyn Trait>`, `Rc<dyn Trait>`, etc.
+
+### Sized Trait
+
+To work with DSTs, Rust has a particular trait called the *Sized trait to determine whether or not a type’s size is known at compile time. This trait is automatically implemented for everything whose size is known at compile time.*
+
+When we define a function to use a generic type like: `fn generic<T>(t: T) {}`, it actually looks like: `fn generic<T: Sized>(t: T) {}`
+
+**This means, by default generic functions will work only on types that have a known size at compile time.**
+
+We can avoid the above sized restriction on generic types on functions be using `?Sized`.
+```
+fn generic<T: ?Sized>(t: &T) { // Use &T for generic type since its unsized!
+    // --snip--
+}
+```
+We would read this as “T may or may not be Sized.” This syntax is only available for Sized, not any other traits.
+However, since now the generic type may be unsized(DST, size not known at compilel time) so we must keep it behind a pointer
+**thus, we switched the type of the t parameter from T to &T**,
+In this case, we’ve chosen a reference, we can use other pointers also like Box, Rc, etc.
