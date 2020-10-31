@@ -1874,7 +1874,7 @@ fn main() {
 ```
 
 
------------------------------------------------------------ ITERATORS IN RUST -----------------------------------------------------------
+-------------------------------------------------------- ITERATORS IN RUST --------------------------------------------------------
 
 The iterator pattern allows you to perform some task on a sequence of items in turn.
 
@@ -3977,3 +3977,80 @@ We would read this as “T may or may not be Sized.” This syntax is only avail
 However, since now the generic type may be unsized(DST, size not known at compilel time) so we must keep it behind a pointer
 **thus, we switched the type of the t parameter from T to &T**,
 In this case, we’ve chosen a reference, we can use other pointers also like Box, Rc, etc.
+
+## Function Pointers
+
+We can padd closures as well ad regular funtions to other functions using function pointers.
+When passing closures we use Fn traits are provided by the standard library that is Fn, FnMut and FnOnce.
+
+However, **for function pointers we use the `fn` type.**
+Unlike closures, fn is a type rather than a trait, so we specify fn as the parameter type directly rather than declaring a generic type parameter with one of the Fn traits as a trait bound.
+
+Also, Function pointers implement all three of the closure traits (Fn, FnMut, and FnOnce), so you can always pass a function pointer as an argument for a function that expects a closure.
+
+Examples:
+
+```
+fn add_one(x: i32) -> i32 {
+    x + 1
+}
+
+fn do_twice(f: fn(i32) -> i32, arg: i32) -> i32 { // Here `do_twice` accepts a function pointer like: f: fn(i32) -> i32
+    f(arg) + f(arg)
+}
+
+fn main() {
+    let answer = do_twice(add_one, 5);
+
+    println!("The answer is: {}", answer);
+}
+
+// ---------------------------------------------
+// Another example:
+
+let list_of_numbers = vec![1, 2, 3];
+
+let list_of_strings: Vec<String> = list_of_numbers.iter().map(ToString::to_string).collect();
+
+// Here, we must use the fully qualified syntax since there are multiple functions available named to_string.
+
+// ---------------------------------------------
+// Another example:
+
+// We can pass the enum value initalizers as a function pointer since
+// the initializers are actually implemented as functions returning an instance that’s constructed from their arguments.
+
+enum Status {
+        Value(u32),
+        Stop,
+    }
+
+let list_of_statuses: Vec<Status> = (0u32..20).map(Status::Value).collect(); // WORKS ! Creates a vector of Status Enums
+```
+
+### Returning closures:
+
+Inorder to pass closures to function we use traits like Fn, FnMut, FnOnce. Thus we can’t return closures directly from a function.
+
+In other cases, when we need to return a trait from a function,
+we usually return the concerete type that implements that trait instead, this works fine.
+However, for closures there is no such create type.
+
+So...
+
+We are not allowed to use the function pointer fn as a return type.
+We get error about the Sized trait. Rust doesn’t know how much space it will need to store the closure.
+
+```
+// ERROR ! `(dyn std::ops::Fn(i32) -> i32 + 'static)` doesn't have a size known at compile-time
+fn returns_closure() -> dyn Fn(i32) -> i32 {
+    |x| x + 1
+}
+
+// When ever we want to return a DST(size not known at compile time), we can instead return a pointer
+fn returns_closure() -> Box<dyn Fn(i32) -> i32> { // Works !
+    Box::new(|x| x + 1)
+}
+
+// This works as rust now knowns the size of the pointer `Box<dyn Fn(i32) -> i32>`
+```
