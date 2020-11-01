@@ -15,13 +15,19 @@ fn main() {
     let pool = ThreadPool::new(4);
 
     // listener.incomming returns an iterator
-    for stream in listener.incoming() {
+    // Take only two requests from the iterator and after that the thread pool will be dropped
+    for stream in listener.incoming().take(2) {
         let stream = stream.unwrap();
 
         pool.execute(|| {
             handle_connection(stream);
         });
     }
+
+    println!("Shutting down...");
+
+    // At this point the thread pooll will go out5 of scope and the drop() method from its Drop trait implementation will be invoked
+    // which will wait untill all threads have finished and terminated(join() is called on the thread handles).
 }
 
 // We need mutable acces to TcpStream even for reading since the TcpStream instance keeps track
