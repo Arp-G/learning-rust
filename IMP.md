@@ -1832,9 +1832,9 @@ The Fn traits are provided by the standard library. All closures implement at le
 
 * FnMut -> FnMut can change the environment because it mutably borrows values.
 
-* FnOnce ->  Consumes/takes ownership of varaibles in the closure’s environment. The Once part of the name represents the fact that the closure
-             can’t take ownership of the same variables more than once, so it can be called only once.
+* FnOnce ->  Consumes/takes ownership of varaibles in the closure’s environment. The Once part of the name represents the fact that the closure can’t take ownership of the same variables more than once, so it can be called only once.
 
+Use FnOnce as a bound when you want to accept a parameter of function-like type and only need to call it once. If you need to call the parameter repeatedly, use FnMut as a bound; if you also need it to not mutate state, use Fn.
 
 If you want to force the closure to take ownership of the values it uses in the environment, you can use the move keyword before the parameter list. This technique is mostly useful when passing a closure to a new thread to move the data so it’s owned by the new thread.
 
@@ -2889,7 +2889,7 @@ and there’s nowhere to send a value, the send operation will return an error.
 
 ### Receiving using recv and try_recv
 
-`recv()` blocks the threadand waits for the channel untill a message is recieved.
+`recv()` blocks the thread and waits for the channel untill a message is recieved.
 `try_recv()` method doesn’t block, but will instead return a Result<T, E> immediately.
 
 Both `recv()` and `try_recv()` return a Result<T, E>.

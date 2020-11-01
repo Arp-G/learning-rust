@@ -1,7 +1,10 @@
+use std::fs;
 use std::io::prelude::*; // get access to certain traits that let us read from and write to the stream.
 use std::net::TcpListener;
 use std::net::TcpStream;
-use std::fs;
+use std::thread;
+use std::time::Duration;
+use webserver::ThreadPool;
 
 // A single stream represents an open connection between the client and the server.
 // A connection is the name for the full request and response process in which a client connects to the server
@@ -9,11 +12,15 @@ use std::fs;
 fn main() {
     let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
 
+    let pool = ThreadPool::new(4);
+
     // listener.incomming returns an iterator
     for stream in listener.incoming() {
         let stream = stream.unwrap();
 
-        handle_connection(stream);
+        pool.execute(|| {
+            handle_connection(stream);
+        });
     }
 }
 
@@ -26,7 +33,6 @@ fn main() {
 // headers CRLF
 // message-body
 fn handle_connection(mut stream: TcpStream) {
-
     // Create a buffer 1024 bytes in size
     let mut buffer = [0; 1024];
     stream.read(&mut buffer).unwrap();
@@ -36,11 +42,17 @@ fn handle_connection(mut stream: TcpStream) {
     // adding the b"" byte string syntax at the start of the content data
     let get = b"GET / HTTP/1.1\r\n";
 
+    // /sleep path for simulating a lengthy request
+    let sleep = b"GET /sleep HTTP/1.1\r\n";
+
     // We check that the request data read in the buffer starts with the bytes
     // defined in the `get` varaible we hardcoded before.
     // Here we either return a success response responce with the html string read froma file
     // or a 404.html reponse
     let (status_line, filename) = if buffer.starts_with(get) {
+        ("HTTP/1.1 200 OK\r\n\r\n", "hello.html")
+    } else if buffer.starts_with(sleep) {
+        thread::sleep(Duration::from_secs(5)); // Simulate lengthy request by sleeping 5 sec.
         ("HTTP/1.1 200 OK\r\n\r\n", "hello.html")
     } else {
         ("HTTP/1.1 404 NOT FOUND\r\n\r\n", "404.html")
